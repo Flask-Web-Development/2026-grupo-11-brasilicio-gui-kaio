@@ -5,5 +5,3 @@ app = Flask(__name__, instance_relative_config=True)
 @app.get("/hello")
 def hello():
   return "Hello World"
-
-
