@@ -3,10 +3,11 @@
 import { useState } from 'react'
 
 const NAV_LINKS = [
-  { label: 'Início', href: '#' },
-  { label: 'Artigos', href: '#' },
-  { label: 'Categorias', href: '#' },
+  { label: 'Início', href: '/' },
+  { label: 'Posts', href: '/blog' },
+  { label: 'WIP', href: '#' },
   { label: 'Sobre', href: '#' },
+  { label: 'Login', href: '/auth' },
 ]
 
 export default function Header() {
@@ -25,10 +26,10 @@ export default function Header() {
             />
           </a>
           <div className="flex flex-col leading-none">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4A017]">
+            <span className="cursor-default text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4A017]">
               Instituto Federal do Rio Grande do Norte
             </span>
-            <h1 className="mt-1 text-lg font-semibold tracking-tight text-white sm:text-2xl">
+            <h1 className="cursor-default mt-1 text-lg font-semibold tracking-tight text-white sm:text-2xl">
               Blog IF-PAR
             </h1>
           </div>

@@ -1,4 +1,4 @@
-export default function MainPage(){
+export default function BlogView(){
   return(
     <div className="grid grid-rows-3 grid-cols-3 gap-5">
       <div className="bg-red-500">waw</div>
