@@ -1,9 +1,10 @@
 import Header from "./components/Header";
 import MainPage from "./views/MainPage";
+import TabBar from "./components/TabBar";
 
 export default function Page() {
   return (
-    <div className="grid grid-rows-[100px_1fr_100px] min-h-screen">
+    <div className="grid grid-rows-[4rem_1fr_4rem] min-h-screen">
       <div>
         <Header/>
       </div>
@@ -13,7 +14,8 @@ export default function Page() {
       </div>
 
       <div>
-        <Header/>
+        {/*fix this shit later, do md:hidden */} 
+        <TabBar/>
       </div>
     </div>
   );
