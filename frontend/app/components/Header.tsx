@@ -17,18 +17,18 @@ export default function Header() {
       <div className="grid grid-cols-3 px-2 sm:px-6 h-full w-full items-center place-content-center">
         {/* Logo + título */}
         <div className="flex items-center h-full gap-3 col-span-2">
-          <a href="#">
+          <a href="#" className='min-w-12'>
             <img
               src="https://ead.ifrn.edu.br/portal/wp-content/uploads/2023/02/ifrn-logo.png"
               alt="Logo Instituto Federal do Pará"
-              className="size-12 rounded-xl bg-white p-1 shadow-md"
+              className="size-12 rounded-xl bg-white p-1 shadow-md hover:bg-gray-200 transition-colors"
             />
           </a>
           <div className="flex flex-col leading-none">
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4A017]">
               Instituto Federal do Rio Grande do Norte
             </span>
-            <h1 className="mt-1 text-xl font-bold tracking-tight text-white sm:text-2xl">
+            <h1 className="mt-1 text-lg font-semibold tracking-tight text-white sm:text-2xl">
               Blog IF-PAR
             </h1>
           </div>
