@@ -18,7 +18,7 @@ export default function Header() {
       <div className="grid grid-cols-3 px-2 sm:px-6 h-full w-full items-center place-content-center">
         {/* Logo + título */}
         <div className="flex items-center h-full gap-3 col-span-2">
-          <a href="#" className='min-w-12'>
+          <a href="https://portal.ifrn.edu.br" className='min-w-12'>
             <img
               src="https://ead.ifrn.edu.br/portal/wp-content/uploads/2023/02/ifrn-logo.png"
               alt="Logo Instituto Federal do Pará"
