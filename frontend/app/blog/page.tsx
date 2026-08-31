@@ -4,18 +4,13 @@ import TabBar from "../../components/TabBar";
 
 export default function Page() {
   return (
-    <div className="grid grid-rows-[4rem_1fr_4rem] min-h-screen">
-      <div>
+    <div className="grid grid-rows-[5rem_1fr] min-h-screen">
+      <div className="sticky top-0">
         <Header/>
       </div>
 
       <div>
         <BlogPage/>
-      </div>
-
-      <div className="hidden">
-        {/*fix this shit later, do md:hidden */} 
-        <TabBar/>
       </div>
     </div>
   );
