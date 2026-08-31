@@ -5,6 +5,8 @@ from .post_tag import post_tags
 from ..database import db
 
 class Post(db.Model):
+    __tablename__ = "posts"
+    
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(unique=False)
     content: Mapped[str] = mapped_column(unique=False)
