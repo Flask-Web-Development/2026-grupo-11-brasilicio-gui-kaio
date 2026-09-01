@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import Card from "./Card"
 import Paginator from "./Paginator";
@@ -101,7 +102,10 @@ const tab_test = [
 //test block, substitute with real fetch when backend ready
 
 export default function BlogView(){
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [currentPage, setCurrentPage] = useState( Math.max(1, Number(searchParams.get("page") ?? "1")) );
   const POSTS_PER_PAGE = 9;
 
   const totalPages = Math.ceil(tab_test.length / POSTS_PER_PAGE)
@@ -111,26 +115,34 @@ export default function BlogView(){
     return tab_test.slice(start, start + POSTS_PER_PAGE);
   }, [tab_test, currentPage])
 
+  function handlePageChange(page: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    router.push(`/blog?${params.toString()}`, { scroll: false });
+  }
+
   return(
-    <div className="flex h-full flex-col">
-      <div className="flex h-[5rem] bg-white">
-        wada
-      </div>
+    <Suspense fallback={null}>
+      <div className="flex h-full flex-col">
+        <div className="flex h-[5rem] bg-white">
+          wada
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 h-full gap-3 px-8 py-5 bg-black">
-        {currentPosts.map( (posts) => (
-          //<p>{posts.title} - {posts.body}</p>
-          <Card key={posts.id} title={posts.title} body={posts.body}/>
-        ))}
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 h-full gap-3 px-8 py-5 bg-black">
+          {currentPosts.map( (posts) => (
+            //<p>{posts.title} - {posts.body}</p>
+            <Card key={posts.id} title={posts.title} body={posts.body}/>
+          ))}
+        </div>
 
-      <div className="flex h-[3rem] justify-center items center bg-black text-white font-semibold">
-        <Paginator
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        />
+        <div className="flex h-[3rem] justify-center items center bg-black text-white font-semibold sticky bottom-0">
+          <Paginator
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          />
+        </div>
       </div>
-    </div>
+    </Suspense>
   );
 }
