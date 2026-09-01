@@ -119,6 +119,7 @@ export default function BlogView(){
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(page));
     router.push(`/blog?${params.toString()}`, { scroll: false });
+    setCurrentPage(page)
   }
 
   return(
