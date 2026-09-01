@@ -20,5 +20,5 @@ class User(db.Model):
 
     role: Mapped[Role] = mapped_column(unique=False)
 
-    created_at: Mapped[datetime] = mapped_column(unique=False, nullable=False, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(unique=False, nullable=False, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(unique=False, nullable=True)

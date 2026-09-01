@@ -28,7 +28,7 @@ class Post(db.Model):
 
     status: Mapped[Status] = mapped_column(unique=False)
 
-    created_at: Mapped[datetime] = mapped_column(unique=False, nullable=False, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(unique=False, nullable=False, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(unique=False, nullable=True)
     updated_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
 
