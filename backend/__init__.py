@@ -1,6 +1,8 @@
 import os
 from flask import Flask
 
+from sqlalchemy import select
+
 from .app import app
 from .database import db
 
@@ -21,8 +23,14 @@ def create_app(test_config=None):
     from .models.tag import Tag
     from .models.post_tag import post_tags
     from .models.post import Post
+    from .models.user import User
 
     with app.app_context():
         db.create_all()
+
+        user = User(username="a", email="a", password_hash="a", role="a")
+
+        db.session.add(user)
+        db.session.commit()
 
     return app
