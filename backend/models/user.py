@@ -8,7 +8,7 @@ from ..database import db
 
 class Role(Enum):
     USER = "User"
-    ADMIn = "Admin"
+    ADMIN = "Admin"
 
 class User(db.Model):
     __tablename__ = "users"
