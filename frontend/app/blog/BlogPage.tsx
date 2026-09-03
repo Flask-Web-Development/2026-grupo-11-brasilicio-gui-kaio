@@ -1,31 +1,29 @@
-"use client"
+"use client";
 
-import { useMemo, useState, Suspense } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import Card from "./Card"
-import Paginator from "./Paginator";
-
+import Card from "./Card";
 
 //test block, substitute with real fetch when backend ready
-const tab_test1 = [
-  {id: 1, title: "wablua", body:"wira"},
-  {id: 2, title: "wablua2", body:"wira2"},
-  {id: 3, title: "wablua2", body:"wira2"},
-  {id: 4, title: "wablua2", body:"wira2"},
-  {id: 5, title: "wablua2", body:"wira2"},
-  {id: 6, title: "wablua2", body:"wira2"},
-  {id: 7, title: "wablua2", body:"wira2"},
-  {id: 8, title: "wablua2", body:"wira2"},
-]
+const data_test1 = [
+  { id: 1, title: "wablua", body: "wira" },
+  { id: 2, title: "wablua2", body: "wira2" },
+  { id: 3, title: "wablua2", body: "wira2" },
+  { id: 4, title: "wablua2", body: "wira2" },
+  { id: 5, title: "wablua2", body: "wira2" },
+  { id: 6, title: "wablua2", body: "wira2" },
+  { id: 7, title: "wablua2", body: "wira2" },
+  { id: 8, title: "wablua2", body: "wira2" },
+];
 
-const tab_test2 = [
-  {id: 1, title: "wablua", body:"wira"},
-  {id: 2, title: "wablua2", body:"wira2"},
-  {id: 3, title: "wablua2", body:"wira2"},
-]
+const data_test2 = [
+  { id: 1, title: "wablua", body: "wira" },
+  { id: 2, title: "wablua2", body: "wira2" },
+  { id: 3, title: "wablua2", body: "wira2" },
+];
 
-const tab_test = [
+const data_test = [
   { id: 1, title: "wablua1", body: "wira1" },
   { id: 2, title: "wablua2", body: "wira2" },
   { id: 3, title: "wablua3", body: "wira3" },
@@ -101,49 +99,106 @@ const tab_test = [
 ];
 //test block, substitute with real fetch when backend ready
 
-export default function BlogView(){
+export default function BlogView() {
+
+  const didInit = useRef(false); 
+  // delete this fucker later, just here to avoid THAT BITCH FROM STRICT MODE
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [currentPage, setCurrentPage] = useState( Math.max(1, Number(searchParams.get("page") ?? "1")) );
   const POSTS_PER_PAGE = 9;
+  const [posts, setPosts] = useState<typeof data_test>([]);
+  const [page, setPage] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const totalPages = Math.ceil(tab_test.length / POSTS_PER_PAGE)
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const currentPosts = useMemo(() => {
-    const start = (currentPage - 1) * POSTS_PER_PAGE;
-    return tab_test.slice(start, start + POSTS_PER_PAGE);
-  }, [tab_test, currentPage])
+  const totalPages = Math.ceil(data_test.length / POSTS_PER_PAGE);
 
-  function handlePageChange(page: number) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(page));
-    router.push(`/blog?${params.toString()}`, { scroll: false });
-    setCurrentPage(page)
-  }
+  const loadMore = useCallback( async () => {
+    if (isLoading || !hasMore) return;
 
-  return(
-    <Suspense fallback={null}>
-      <div className="flex h-full flex-col">
-        <div className="flex h-[5rem] bg-white">
-          wada
-        </div>
+    setIsLoading(true);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 h-full gap-3 px-8 py-5 bg-black">
-          {currentPosts.map( (posts) => (
-            //<p>{posts.title} - {posts.body}</p>
-            <Card key={posts.id} title={posts.title} body={posts.body}/>
-          ))}
-        </div>
+    const nextPage = page + 1;
+    const start = (nextPage - 1) * POSTS_PER_PAGE;
+    const nextSlice = data_test.slice(start, start + POSTS_PER_PAGE);
 
-        <div className="flex h-[3rem] justify-center items center bg-black text-white font-semibold sticky bottom-0">
-          <Paginator
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          />
+    setPosts((prev) => [...prev, ...nextSlice]);
+    setPage(nextPage);
+    setHasMore(nextPage < totalPages);
+    setIsLoading(false);
+  }, [page, isLoading, hasMore, totalPages])
+
+  useEffect(() => {
+    if (didInit.current) return; // delete this fucker later
+    didInit.current = true; // delete this fucker later
+    loadMore();
+  }, []);
+
+  useEffect(() => {
+    const self = loaderRef.current;
+    if(!self) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting){
+          loadMore();
+        }
+      },
+      {
+        root:null,
+        rootMargin: "300px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(self);
+    return () => observer.disconnect();
+  }, [loadMore])
+
+  return (
+    <div className="h-full flex flex-col bg-linear-to-r from-green-950 to-emerald-950/50">
+
+      <div className="border-b border-yellow-400/20 px-8 py-6">
+        <div className="mx-auto flex max-w-5xl items-baseline justify-between">
+          <h2 className="font-sans text-2xl font-semibold text-white">
+            Publicações
+          </h2>
+          <span className="text-sm text-[#9FB3A8]">
+            {posts.length} de {data_test.length}
+          </span>
         </div>
       </div>
-    </Suspense>
+
+      {/* Grid de posts */}
+      <div className="mx-auto grid w-[90%] grid-cols-1 gap-x-10 gap-y-8 px-8 py-10 md:grid-cols-2">
+        {posts.map((post) => (
+          <Card key={post.id} title={post.title} body={post.body} />
+        ))}
+      </div>
+
+      <div ref={loaderRef} className="h-10 w-full" />
+
+      {isLoading && (
+        <div
+          className="flex items-center justify-center gap-2 py-8 text-sm text-white"
+        >
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400/90" />
+          Carregando mais publicações
+        </div>
+      )}
+
+      {!hasMore && posts.length > 0 && (
+        <div className="flex flex-col items-center gap-2 py-10">
+          <span className="h-px w-120 bg-yellow-500/40" />
+          <p className="text-sm italic text-lime-100/50">
+            Isso é tudo por enquanto.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
