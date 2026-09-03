@@ -1,6 +1,5 @@
 import Header from "../components/Header";
 import LandingPage from "./LandingPage";
-import TabBar from "../components/TabBar";
 
 export default function Page() {
   return (
