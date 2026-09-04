@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 import Card from "./Card";
 
@@ -176,7 +177,13 @@ export default function BlogView() {
       {/* Grid de posts */}
       <div className="mx-auto grid w-[90%] grid-cols-1 gap-x-10 gap-y-8 px-8 py-10 md:grid-cols-2">
         {posts.map((post) => (
-          <Card key={post.id} title={post.title} body={post.body} />
+          <Link
+            key={post.id}
+            href={`/blog/${post.id}`}
+            className="block rounded-sm transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A017] focus-visible:outline-offset-2"
+          >
+            <Card title={post.title} body={post.body} />
+          </Link>
         ))}
       </div>
 
