@@ -30,9 +30,4 @@ def create_app(test_config=None):
     with app.app_context():
         db.create_all()
 
-        user = User(username="a", email="a", password_hash="a", role="a")
-
-        db.session.add(user)
-        db.session.commit()
-
     return app
