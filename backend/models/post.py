@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 
 from .post_tag import post_tags
+from .post_image import post_image
 from ..database import db
 
 class Status(Enum):
@@ -34,5 +35,10 @@ class Post(db.Model):
 
     tags: Mapped[list["Tag"]] = relationship(
         secondary=post_tags,
+        back_populates="posts",
+    )
+
+    image: Mapped["Image"] = relationship(
+        secondary=post_image,
         back_populates="posts",
     )
