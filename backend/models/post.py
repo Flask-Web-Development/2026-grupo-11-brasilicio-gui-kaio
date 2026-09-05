@@ -1,14 +1,14 @@
-from sqlalchemy import Integer, String, ForeignKey
+from sqlalchemy import Integer, String, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
-from enum import Enum
+import enum
 
 from .post_tag import post_tags
 from .post_image import post_image
 from ..database import db
 
-class Status(Enum):
+class Status(enum.StrEnum):
     RASCUNHO = "Rascunho"
     PUBLICADO = "Publicado"
     OCULTO = "Oculto"
@@ -27,7 +27,9 @@ class Post(db.Model):
 
     is_fixed: Mapped[bool] = mapped_column(unique=False)
 
-    status: Mapped[Status] = mapped_column(unique=False)
+    status: Mapped[Status] = mapped_column(
+        Enum(Status, values_callable=lambda obj: [item.value for item in obj]), unique=False
+    )
 
     created_at: Mapped[datetime] = mapped_column(unique=False, nullable=False, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(unique=False, nullable=True)
