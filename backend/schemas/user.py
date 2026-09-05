@@ -13,11 +13,11 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
 
-class UserCreate(UserBase):
-    role: Role #!!!validate on backend!!!
-
-class UserResponse(UserBase):
     role: Role
 
+class UserCreate(UserBase):
+    ...
+
+class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
