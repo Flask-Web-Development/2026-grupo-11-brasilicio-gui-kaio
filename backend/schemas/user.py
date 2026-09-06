@@ -16,7 +16,7 @@ class UserBase(BaseModel):
     role: Role
 
 class UserCreate(UserBase):
-    ...
+    password: SecretStr
 
 class UserResponse(UserBase):
     id: int
