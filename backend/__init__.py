@@ -9,6 +9,7 @@ from .database import db
 def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY="dev",
+        JWT_SECRET_KEY = "super-secret",
         SQLALCHEMY_DATABASE_URI="sqlite:///db.sqlite",
     )
 

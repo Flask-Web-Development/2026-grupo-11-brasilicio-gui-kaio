@@ -1,6 +1,8 @@
 from sqlalchemy import Integer, String, DateTime, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from datetime import datetime
 import enum
 
@@ -24,3 +26,12 @@ class User(db.Model):
 
     created_at: Mapped[datetime] = mapped_column(unique=False, nullable=False, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(unique=False, nullable=True)
+
+    def get_user_id(self) -> int:
+        return self.id
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password) -> bool:
+        return check_password_hash(self.password_hash, password)

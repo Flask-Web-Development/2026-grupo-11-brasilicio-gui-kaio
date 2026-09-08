@@ -1,6 +1,6 @@
 flask
 flask-cors
-flask-oauthlib
+flask_jwt_extended
 sqlalchemy
 flask-sqlalchemy
 python-dotenv
