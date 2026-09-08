@@ -32,3 +32,27 @@ def create_app(test_config=None):
         db.create_all()
 
     return app
+
+def test_user_instance():
+    test_app = create_app()
+
+    from .models.user import Role, User
+
+    with test_app.app_context():
+        user = User(
+            username="usuario_teste",
+            email="usuario.teste@example.com",
+            role=Role.USER,
+        )
+        user.set_password("senha-de-teste")
+
+        db.session.add(user)
+        db.session.flush()
+        db.session.commit()
+
+        loaded_user = db.session.get(User, user.id)
+
+        print(f"Usuário criado: {loaded_user.username}")
+        print(f"ID: {loaded_user.id}")
+        print(f"Role: {loaded_user.role.value}")
+        print(f"Senha válida: {loaded_user.check_password('senha-de-teste')}")
