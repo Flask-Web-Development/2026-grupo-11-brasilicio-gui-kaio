@@ -18,13 +18,13 @@ const data_test1 = [
   { id: 8, title: "wablua2", body: "wira2" },
 ];
 
-const data_test2 = [
-  { id: 1, title: "wablua", body: "wira" },
-  { id: 2, title: "wablua2", body: "wira2" },
-  { id: 3, title: "wablua2", body: "wira2" },
+const data_test = [
+  { id: 1, author: "Voices Of My Head", date: new Date(Date.now()).toISOString().slice(0, 10), title: "Professor Gay Tem Relações com Padre Gay", subtitle:"MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira" },
+  { id: 2, author: "Voices Of My Head", date: new Date(Date.now()).toISOString().slice(0, 10), title: "Não Ao Cream Cracker!!!", subtitle:"MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
+  { id: 3, author: "Voices Of My Head", date: new Date(Date.now()).toISOString().slice(0, 10), title: "Campus Do Amor, Alunos Correm Pelados No São João", subtitle:"MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
 ];
 
-const data_test = [
+const data_test2 = [
   { id: 1, title: "wablua1", body: "wira1" },
   { id: 2, title: "wablua2", body: "wira2" },
   { id: 3, title: "wablua3", body: "wira3" },
@@ -182,7 +182,7 @@ export default function BlogView() {
             href={`/blog/${post.id}`}
             className="block rounded-sm transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A017] focus-visible:outline-offset-2"
           >
-            <Card title={post.title} body={post.body} />
+            <Card title={post.title} subtitle={post.subtitle} body={post.body} author={post.author} date={post.date}/>
           </Link>
         ))}
       </div>
