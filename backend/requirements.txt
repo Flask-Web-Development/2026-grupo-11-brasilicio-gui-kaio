@@ -4,4 +4,4 @@ flask_jwt_extended
 sqlalchemy
 flask-sqlalchemy
 python-dotenv
-pydantic
+pydantic[email]
