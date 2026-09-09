@@ -20,6 +20,11 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: SecretStr
 
+class UserUpdate(BaseModel):
+    username: str | None = None
+    password: SecretStr | None = None
+    role: Role | None = None
+
 class UserResponse(UserBase):
     id: UUID
 
