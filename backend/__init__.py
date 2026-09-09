@@ -19,6 +19,11 @@ def create_app(test_config=None):
         app.config.from_pyfile("config.py", silent=True)
 
     db.init_app(app)
+    
+    # IMPORT ROUTES HERE!!
+    from .routes.user_route import route_user
+
+    app.register_blueprint(route_user)
 
     # IMPORT MODELS HERE!
     from .models.tag import Tag
@@ -40,11 +45,11 @@ def test_user_instance():
 
     with test_app.app_context():
         user = User(
-            username="usuario_teste",
-            email="usuario.teste@example.com",
+            username="usuario_teste_2",
+            email="usuario.teste.2@example.com",
             role=Role.USER,
         )
-        user.set_password("senha-de-teste")
+        user.set_password("senha-de-teste-2")
 
         db.session.add(user)
         db.session.flush()

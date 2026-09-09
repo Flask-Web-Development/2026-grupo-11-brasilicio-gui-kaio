@@ -27,12 +27,12 @@ class User(db.Model):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.now()
+        DateTime(timezone=True), nullable=False, default=datetime.now
     )
 
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True,
-        onupdate=datetime.now(),
+        onupdate=datetime.now,
     )
 
     def get_user_id(self) -> UUID:
