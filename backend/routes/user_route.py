@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, current_user
 from pydantic import ValidationError
 
 from uuid import UUID
@@ -11,8 +12,12 @@ from ..services.user_service import (
     remove_user,
     update_user
 )
+from ..models.user import Role
 
 route_user = Blueprint("users", __name__, url_prefix="/users")
+
+def is_authorized(id: UUID):
+    return current_user.id == id or current_user.role == Role.ADMIN
 
 def object_user_serialize(user):
     return UserResponse.model_validate(user).model_dump()
@@ -22,7 +27,10 @@ def get_users():
     return jsonify([object_user_serialize(user) for user in list_users()]), 200
 
 @route_user.get("/<uuid:id>")
+@jwt_required()
 def get_user_by_id(id: UUID):
+    if not is_authorized(id):
+        return "", 403
     user = get_user(id)
     if user is None:
         return jsonify({"error": "User not found"}), 404
@@ -40,7 +48,10 @@ def post_user():
     return jsonify(object_user_serialize(user)), 201
 
 @route_user.delete("/<uuid:id>")
+@jwt_required()
 def delete_user(id: UUID):
+    if not is_authorized(id):
+        return "", 403
     user = get_user(id)
     if user is None:
         return jsonify({"error": "User not found"}), 404
@@ -48,7 +59,10 @@ def delete_user(id: UUID):
     return "", 204
 
 @route_user.put("/<uuid:id>")
+@jwt_required()
 def put_user(id: UUID):
+    if not is_authorized(id):
+        return "", 403
     try:
         put_body = request.get_json()
         put_data = UserUpdate.model_validate(put_body)
