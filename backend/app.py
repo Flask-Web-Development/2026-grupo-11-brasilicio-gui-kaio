@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 from .models.user import User
+from .schemas.login import LoginRequest
 
 app = Flask(__name__, instance_relative_config=True)
 
@@ -22,13 +23,11 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 @app.route("/login", methods=["POST"])
 def login():
-  #TODO: convert to pydantic object
-  username = request.json.get("username", None)
-  password = request.json.get("password", None)
+  login_request: LoginRequest = LoginRequest.model_validate(request.json)
 
-  user: User = User.query.filter_by(username=username).one_or_none()
+  user: User = User.query.filter_by(username=login_request.username).one_or_none()
 
-  if not user or not user.check_password(password):
+  if not user or not user.check_password(login_request.password.get_secret_value()):
     return jsonify("Wrong username or password"), 401
 
   additional_claims = {
