@@ -23,9 +23,11 @@ def create_app(test_config=None):
     # IMPORT ROUTES HERE!!
     from .routes.user_route import route_user
     from .routes.tag_route import route_tag
+    from .routes.post_route import route_post
 
     app.register_blueprint(route_user)
     app.register_blueprint(route_tag)
+    app.register_blueprint(route_post)
 
     # IMPORT MODELS HERE!
     from .models.tag import Tag

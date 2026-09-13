@@ -28,6 +28,19 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     ...
 
+class PostUpdate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    title: str | None = None
+    subtitle: str | None = None
+    content: str | None = None
+    slug: str | None = None
+
+    is_fixed: bool | None = None
+
+    status: Status | None = None
+    image: ImageResponse | None = None
+
 class PostResponse(PostBase):
     id: int
     created_by_id: int

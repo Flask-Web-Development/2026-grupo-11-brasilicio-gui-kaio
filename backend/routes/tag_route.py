@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
-from ..schemas.tag import TagCreate, TagResponse, TagUpdate
+from ..schemas.post import PostCreate, TagResponse, PostUpdate
 from ..services.tag_service import (
     list_tags,
     get_tag,
@@ -40,7 +40,7 @@ def get_tag_by_id(id: int):
 def post_tag():
     try:
         post_body = request.get_json()
-        tag_data = TagCreate.model_validate(post_body)
+        tag_data = PostCreate.model_validate(post_body)
     except ValidationError as error:
         return jsonify({"errors": error.errors()}), 400
 
@@ -61,7 +61,7 @@ def delete_tag(id: int):
 def put_tag(id: int):
     try:
         put_body = request.get_json()
-        tag_data = TagUpdate.model_validate(put_body)
+        tag_data = PostUpdate.model_validate(put_body)
     except ValidationError as error:
         return jsonify({"errors": error.errors()}), 400
 
