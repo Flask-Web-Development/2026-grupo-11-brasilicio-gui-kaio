@@ -23,12 +23,12 @@ def a():
     return "aaaa"
 
 @route_tag.get("")
-# @admin_required
+@admin_required
 def get_tags():
     return jsonify([object_tag_serialize(tag) for tag in list_tags()]), 200
 
 @route_tag.get("/<int:id>")
-# @admin_required
+@admin_required
 def get_tag_by_id(id: int):
     tag = get_tag(id)
     if tag is None:
@@ -48,7 +48,7 @@ def post_tag():
     return jsonify(object_tag_serialize(tag)), 201
 
 @route_tag.delete("/<int:id>")
-# @admin_required
+@admin_required
 def delete_tag(id: int):
     tag = get_tag(id)
     if tag is None:
@@ -57,7 +57,7 @@ def delete_tag(id: int):
     return "", 204
 
 @route_tag.put("/<int:id>")
-# @admin_required
+@admin_required
 def put_tag(id: int):
     try:
         put_body = request.get_json()
