@@ -6,7 +6,7 @@ export default async function Page({params,}: {params: Promise<{ postId: string 
 
   return (
     <div className="grid grid-rows-[5rem_1fr] md:grid-rows-[4rem_1fr] min-h-screen">
-      <div className="sticky top-0 shadow-2xl">
+      <div className="sticky top-0">
         <Header/>
       </div>
 
