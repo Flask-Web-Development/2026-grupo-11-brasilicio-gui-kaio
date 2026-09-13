@@ -12,17 +12,16 @@ from ..services.user_service import (
     remove_user,
     update_user
 )
-from ..models.user import Role
+
+from ..auth import is_authorized, admin_required
 
 route_user = Blueprint("users", __name__, url_prefix="/users")
-
-def is_authorized(id: UUID):
-    return current_user.id == id or current_user.role == Role.ADMIN
 
 def object_user_serialize(user):
     return UserResponse.model_validate(user).model_dump()
 
 @route_user.get("")
+@admin_required
 def get_users():
     return jsonify([object_user_serialize(user) for user in list_users()]), 200
 
