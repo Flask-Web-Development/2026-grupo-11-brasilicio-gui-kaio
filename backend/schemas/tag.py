@@ -9,6 +9,10 @@ class TagBase(BaseModel):
 class TagCreate(TagBase):
     ...
 
+class TagUpdate(TagBase):
+    name: str | None = None
+    importance: int | None = None
+
 # these are built upon the previous members
 class TagResponse(TagBase):
     id: int
