@@ -15,8 +15,8 @@ from ..auth import is_authorized, admin_required
 
 route_post = Blueprint("posts", __name__, url_prefix="/posts")
 
-def object_post_serialize(tag):
-    return PostResponse.model_validate(tag).model_dump()
+def object_post_serialize(post):
+    return PostResponse.model_validate(post).model_dump()
 
 @route_post.get("")
 @admin_required
@@ -28,7 +28,7 @@ def get_posts():
 def get_post_by_id(id: int):
     post = get_post(id)
     if post is None:
-        return jsonify({"error": "Tag not found"}), 404
+        return jsonify({"error": "Post not found"}), 404
     return jsonify(object_post_serialize(post)), 200
 
 @route_post.post("")
