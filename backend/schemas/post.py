@@ -50,8 +50,8 @@ class PostResponse(PostBase):
     status: Status
 
     created_at: datetime
-    updated_at: datetime
-    updated_by: int
+    updated_at: datetime | None = None
+    updated_by: int | None = None
 
     tags: list[TagResponse]
 
