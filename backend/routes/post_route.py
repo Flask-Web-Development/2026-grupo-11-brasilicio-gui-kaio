@@ -40,13 +40,13 @@ def post_post():
     except ValidationError as error:
         return jsonify({"errors": error.errors()}), 400
 
-    post = create_tag(post_data)
+    post = create_post(post_data)
     return jsonify(object_post_serialize(post)), 201
 
 @route_post.delete("/<int:id>")
 @admin_required
 def delete_post(id: int):
-    post = get_psot(id)
+    post = get_post(id)
     if post is None:
         return jsonify({"error": "Post not found"}), 404
     remove_post(post)
