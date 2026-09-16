@@ -11,7 +11,7 @@ def get_tag(id: int) -> Tag | None:
     return db.session.get(Tag, id)
 
 def create_tag(data: TagCreate) -> Tag:
-    tag = Tag(*data.model_dump())
+    tag = Tag(**data.model_dump())
 
     db.session.add(tag)
     db.session.commit()
