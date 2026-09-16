@@ -45,7 +45,7 @@ class Post(db.Model):
         back_populates="posts",
     )
     
-    thumbnail: Mapped("Image") = relationship(
+    thumbnail: Mapped["Image"] = relationship(
         secondary=post_thumbnail,
         back_populates="thumbnail_posts"
     )
