@@ -1,16 +1,19 @@
 import os
 from flask import Flask
+from dotenv import load_dotenv
 
 from sqlalchemy import select
 
 from .app import app
 from .database import db
 
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
 def create_app(test_config=None):
     app.config.from_mapping(
-        SECRET_KEY="dev",
-        JWT_SECRET_KEY = "super-secret",
-        SQLALCHEMY_DATABASE_URI="sqlite:///db.sqlite",
+        SECRET_KEY=os.getenv("SECRET_KEY", "dev"),
+        JWT_SECRET_KEY=os.getenv("JWT_SECRET_KEY", "super-secret"),
+        SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", "sqlite:///db.sqlite"),
     )
 
     if test_config:
