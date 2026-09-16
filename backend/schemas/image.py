@@ -1,13 +1,10 @@
-from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
-from uuid import UUID
-
 class ImageBase(BaseModel):
-    path: Path
+    path: str
 
 class ImageCreate(ImageBase):
     ...
 
 class ImageResponse(ImageBase):
-    id: UUID
+    id: int

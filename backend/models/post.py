@@ -5,7 +5,7 @@ from datetime import datetime
 import enum
 
 from .post_tag import post_tags
-from .post_image import post_image
+from .post_image import post_image, post_thumbnail
 from ..database import db
 
 class Status(enum.StrEnum):
@@ -40,7 +40,12 @@ class Post(db.Model):
         back_populates="posts",
     )
 
-    image: Mapped["Image"] = relationship(
+    images: Mapped[list["Image"]] = relationship(
         secondary=post_image,
         back_populates="posts",
+    )
+    
+    thumbnail: Mapped("Image") = relationship(
+        secondary=post_thumbnail,
+        back_populates="thumbnail_posts"
     )

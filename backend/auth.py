@@ -14,5 +14,5 @@ def admin_required(func):
     
     return wrapper
 
-def is_authorized(id: UUID):
+def is_authorized(id: int):
     return current_user.id == id or current_user.role == Role.ADMIN
