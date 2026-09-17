@@ -11,8 +11,7 @@ def get_user(id: int) -> User | None:
     return db.session.get(User, id)
 
 def create_user(data: UserCreate) -> User:
-    values = data.model_dump(exclude={"password"})
-    user = User(**values, role=Role.USER)
+    user = User(**data, role=Role.USER)
     user.set_password(data.password.get_secret_value())
 
     db.session.add(user)
