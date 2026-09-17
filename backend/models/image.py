@@ -1,21 +1,21 @@
-from sqlalchemy import Integer, String, DateTime
+from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from uuid import UUID, uuid4
-
-from .post_image import post_image
+from .post_image import post_image, post_thumbnail
 from ..database import db
-
 
 class Image(db.Model):
     __tablename__ = "images"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     path: Mapped[str] = mapped_column(nullable=False)
 
     posts: Mapped[list["Post"]] = relationship(
         secondary=post_image,
-        back_populates="image",
+        back_populates="images",
     )
 
-# add some sthuf to get the image data later here
+    thumbnail_post: Mapped[list["Post"]] = relationship(
+        secondary=post_thumbnail,
+        back_populates="thumbnail"
+    )

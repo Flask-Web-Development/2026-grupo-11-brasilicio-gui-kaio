@@ -11,7 +11,7 @@ def get_post(id: int) -> Post | None:
     return db.session.get(Post, id)
 
 def create_post(data: PostCreate) -> Post:
-    post = Post(*data.model_dump())
+    post = Post(**data.model_dump())
 
     db.session.add(post)
     db.session.commit()
@@ -39,8 +39,10 @@ def update_post(post: Post, data: PostUpdate) -> Post:
 
     if "status" in values:
         post.status = values["status"]
-    if "image" in values:
-        post.image = values["image"]
+    if "thumbnail" in values:
+        post.thumbnail = values["thumbnail"]
+    if "images" in values:
+        post.images = values["images"]
 
     db.session.commit()
 

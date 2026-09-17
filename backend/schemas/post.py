@@ -23,7 +23,8 @@ class PostBase(BaseModel):
     is_fixed: bool
 
     status: Status
-    image: ImageResponse
+    thumbnail: ImageResponse
+    images: list[ImageResponse] = []
 
 class PostCreate(PostBase):
     ...
@@ -39,7 +40,8 @@ class PostUpdate(BaseModel):
     is_fixed: bool | None = None
 
     status: Status | None = None
-    image: ImageResponse | None = None
+    thumbnail: ImageResponse | None = None
+    images: list[ImageResponse] | None = None
 
 class PostResponse(PostBase):
     id: int
@@ -54,5 +56,3 @@ class PostResponse(PostBase):
     updated_by: int | None = None
 
     tags: list[TagResponse]
-
-    image: ImageResponse
