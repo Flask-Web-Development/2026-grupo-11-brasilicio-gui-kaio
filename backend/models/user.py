@@ -18,7 +18,7 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(unique=False)
     email: Mapped[str | None] = mapped_column(unique=True, nullable=True, default=None)
-    password: Mapped[str] = mapped_column(nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
 
     role: Mapped[Role] = mapped_column(
         Enum(Role, values_callable=lambda obj: [item.value for item in obj]), unique=False
