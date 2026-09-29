@@ -1,5 +1,17 @@
 import { apiFetch } from "../client";
-import type { User, UserCreate, UserUpdate } from "@/types/user";
+import type {
+  User,
+  UserCreate,
+  UserUpdate,
+  UserLogin,
+  LoginResponse,
+} from "@/types/user";
+
+export const userLogin = (payload: UserLogin) =>
+  apiFetch<LoginResponse>("/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 
 export const getUsers = () => apiFetch<User[]>("/users");
 
