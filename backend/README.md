@@ -36,7 +36,7 @@ No Linux/macOS, use `cp .env.example .env`. Revise o `.env` antes de iniciar a a
 Inicie o servidor:
 
 ```bash
-flask --app __init__:create_app run --debug
+flask run
 ```
 
 A API ficará disponível em `http://127.0.0.1:5000`.
