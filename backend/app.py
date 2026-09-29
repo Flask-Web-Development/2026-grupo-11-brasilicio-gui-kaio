@@ -4,7 +4,10 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from .models.user import User
 from .schemas.login import LoginRequest
 
+from flask_cors import CORS
+
 app = Flask(__name__, instance_relative_config=True)
+CORS(app, origins=["http://localhost:3000"])
 
 jwt = JWTManager(app)
 
