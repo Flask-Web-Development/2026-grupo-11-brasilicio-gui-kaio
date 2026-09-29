@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from ..schemas.post import PostCreate, PostResponse, PostUpdate

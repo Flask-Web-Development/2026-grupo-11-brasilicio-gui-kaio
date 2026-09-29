@@ -14,7 +14,7 @@ def hello():
 
 @jwt.user_identity_loader
 def user_identity_lookup(user: User):
-    return user.get_user_id()
+    return str(user.get_user_id())
 
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
