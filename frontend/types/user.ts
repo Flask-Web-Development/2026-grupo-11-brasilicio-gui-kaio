@@ -26,3 +26,12 @@ export type User = UserBase & {
   created_at: string;
   updated_at: string | null;
 };
+
+export type UserLogin = {
+  username: string;
+  password: string;
+};
+
+export type LoginResponse = {
+  access_token: string; // JWT
+};
