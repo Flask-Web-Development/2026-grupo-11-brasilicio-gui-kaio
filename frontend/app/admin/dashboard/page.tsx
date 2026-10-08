@@ -1,11 +1,17 @@
+import Header from "@/components/Header";
+import DashboardPage from "./DashboardPage";
+
 export default function Page() {
+
   return (
-    <div>
-      <p>Super dashboard admin</p>
-      <h1 style={{ color: "pink" }}>rósio</h1>
-      <h2 style={{ padding: "auto", color: "black", backgroundColor: "pink" }}>
-        super rósio
-      </h2>
+    <div className="grid grid-rows-[5rem_1fr] md:grid-rows-[4rem_1fr] min-h-screen">
+      <div className="sticky top-0">
+        <Header/>
+      </div>
+
+      <div>
+        <DashboardPage/>
+      </div>
     </div>
   );
 }
