@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-import Card from "./Card";
+import Card from "@/components/Card";
 
 //test block, substitute with real fetch when backend ready
 const data_test1 = [
