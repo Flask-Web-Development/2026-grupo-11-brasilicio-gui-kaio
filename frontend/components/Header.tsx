@@ -1,14 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { FaUserCircle } from "react-icons/fa";
 
 const NAV_LINKS = [
   { label: 'Início', href: '/' },
   { label: 'Posts', href: '/blog' },
   { label: 'WIP', href: '#' },
   { label: 'Sobre', href: '#' },
-  { label: 'Login', href: '/auth' },
 ]
+
+//Later, change /profile to /auth for login, meanwhile, it just shows personal page 
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -16,7 +18,6 @@ export default function Header() {
   return (
     <header className="relative h-full bg-[#0B3D2E]">
       <div className="grid grid-cols-3 px-2 sm:px-6 h-full w-full items-center place-content-center">
-        {/* Logo + título */}
         <div className="flex items-center h-full gap-3 col-span-2">
           <a href="https://portal.ifrn.edu.br" className='min-w-12'>
             <img
@@ -45,11 +46,15 @@ export default function Header() {
               {link.label}
             </a>
           ))}
+          <button>
+            <a href="/auth">
+              <FaUserCircle size={30}/>
+            </a>
+          </button>
         </nav>
 
         <div className="flex items-center gap-3 justify-end">
           <button
-            aria-label="Abrir menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
             className="inline-flex rounded-full p-2 text-white transition-colors hover:bg-white/10 md:hidden"
@@ -61,6 +66,11 @@ export default function Header() {
                 <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
               )}
             </svg>
+          </button>
+          <button className="md:hidden">
+            <a href="/auth">
+              <FaUserCircle size={50}/>
+            </a>
           </button>
         </div>
       </div>
