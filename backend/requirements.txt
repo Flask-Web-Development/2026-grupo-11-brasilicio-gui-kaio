@@ -1,0 +1,7 @@
+flask
+flask-cors
+flask_jwt_extended
+sqlalchemy
+flask-sqlalchemy
+python-dotenv
+pydantic[email]
