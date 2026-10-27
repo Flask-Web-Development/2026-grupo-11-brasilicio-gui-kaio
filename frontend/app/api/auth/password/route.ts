@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createSession, getSession } from "@/lib/auth/session";
 
+import { API_URL } from "@/lib/api/config";
+
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session?.needsPasswordSetup) {
@@ -21,16 +23,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const syncSecret = process.env.SUAP_SYNC_SECRET;
-  if (!apiUrl || !syncSecret) {
+  if (!API_URL || !syncSecret) {
     return NextResponse.json(
       { error: "Password setup is not configured" },
       { status: 500 },
     );
   }
 
-  const response = await fetch(`${apiUrl}/users/suap/password`, {
+  const response = await fetch(`${API_URL}/users/suap/password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

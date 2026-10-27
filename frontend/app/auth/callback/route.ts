@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { createSession } from "@/lib/auth/session";
 import { getSuapStrategy } from "@/lib/auth/passport";
 
+import { API_URL } from "@/lib/api/config";
+
 const STATE_COOKIE = "suap_oauth_state";
 
 function stringValue(value: unknown) {
@@ -42,7 +44,6 @@ export async function GET(request: Request) {
     if (!subject)
       return errorResponse("SUAP returned an invalid identity", 502);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const syncSecret = process.env.SUAP_SYNC_SECRET;
     const username =
       stringValue(identity.username) ??
@@ -50,11 +51,11 @@ export async function GET(request: Request) {
       stringValue(identity.matricula) ??
       subject;
     const email = stringValue(identity.email);
-    if (!apiUrl || !syncSecret) {
+    if (!API_URL || !syncSecret) {
       return errorResponse("User synchronization is not configured", 500);
     }
 
-    const userResponse = await fetch(`${apiUrl}/users/suap`, {
+    const userResponse = await fetch(`${API_URL}/users/suap`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

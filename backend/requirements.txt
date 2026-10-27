@@ -5,3 +5,4 @@ sqlalchemy
 flask-sqlalchemy
 python-dotenv
 pydantic[email]
+psycopg[binary]
