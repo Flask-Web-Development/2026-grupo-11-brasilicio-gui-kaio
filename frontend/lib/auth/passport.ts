@@ -1,6 +1,5 @@
 import passport from "passport";
 import OAuth2Strategy from "passport-oauth2";
-import type { OAuth2 } from "oauth";
 import {
   getOAuthConfig,
   SUAP_AUTHORIZATION_URL,
@@ -12,7 +11,8 @@ import {
 type SuapProfile = Record<string, unknown>;
 
 class SuapStrategy extends OAuth2Strategy {
-  private readonly oauth: OAuth2;
+  private readonly clientId: string;
+  private readonly clientSecret: string;
   private readonly redirectUri: string;
 
   constructor() {
@@ -33,62 +33,71 @@ class SuapStrategy extends OAuth2Strategy {
         done: OAuth2Strategy.VerifyCallback,
       ) => done(null, profile),
     );
-    this.oauth = this._oauth2;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
     this.redirectUri = redirectUri;
   }
 
   buildAuthorizationUrl(state: string) {
-    return this.oauth.getAuthorizeUrl({
-      response_type: "code",
-      redirect_uri: this.redirectUri,
-      scope: SUAP_SCOPE,
-      state,
-    });
+    const url = new URL(SUAP_AUTHORIZATION_URL);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("redirect_uri", this.redirectUri);
+    url.searchParams.set("scope", SUAP_SCOPE);
+    url.searchParams.set("state", state);
+    url.searchParams.set("client_id", this.clientId);
+    return url.toString();
   }
 
-  exchangeCode(code: string) {
-    return new Promise<string>((resolve, reject) => {
-      this.oauth.getOAuthAccessToken(
+  async exchangeCode(code: string) {
+    const response = await fetch(SUAP_TOKEN_URL, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
         code,
-        {
-          grant_type: "authorization_code",
-          redirect_uri: this.redirectUri,
-        },
-        (error, accessToken) => {
-          if (error || !accessToken) {
-            reject(
-              error ?? new Error("OAuth provider returned no access token"),
-            );
-            return;
-          }
-          resolve(accessToken);
-        },
-      );
+        redirect_uri: this.redirectUri,
+      }),
+      cache: "no-store",
     });
+    const data = (await response.json().catch(() => null)) as {
+      access_token?: unknown;
+      access?: unknown;
+    } | null;
+    const accessToken =
+      typeof data?.access_token === "string"
+        ? data.access_token
+        : typeof data?.access === "string"
+          ? data.access
+          : null;
+    if (!response.ok || !accessToken) {
+      throw new Error(
+        `SUAP token exchange failed with status ${response.status}`,
+      );
+    }
+    return accessToken;
   }
 
-  loadProfile(accessToken: string) {
-    return new Promise<SuapProfile>((resolve, reject) => {
-      this.oauth.getProtectedResource(
-        SUAP_USERINFO_URL,
-        accessToken,
-        (error, body) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          if (!body) {
-            reject(new Error("SUAP returned an empty identity response"));
-            return;
-          }
-          try {
-            resolve(JSON.parse(body.toString()) as SuapProfile);
-          } catch {
-            reject(new Error("SUAP returned an invalid identity response"));
-          }
-        },
-      );
+  async loadProfile(accessToken: string) {
+    const response = await fetch(SUAP_USERINFO_URL, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
     });
+    const profile = (await response
+      .json()
+      .catch(() => null)) as SuapProfile | null;
+    if (!response.ok || !profile) {
+      throw new Error(
+        `SUAP profile request failed with status ${response.status}`,
+      );
+    }
+    return profile;
   }
 }
 
