@@ -32,9 +32,12 @@ export async function GET(request: Request) {
   }
   if (!code) return errorResponse("Authorization code is missing");
 
+  let stage = "strategy";
   try {
     const strategy = getSuapStrategy();
+    stage = "token";
     const accessToken = await strategy.exchangeCode(code);
+    stage = "profile";
     const identity = await strategy.loadProfile(accessToken);
     const subject =
       stringValue(identity.identificacao) ??
@@ -55,6 +58,7 @@ export async function GET(request: Request) {
       return errorResponse("User synchronization is not configured", 500);
     }
 
+    stage = "backend-sync";
     const userResponse = await fetch(`${API_URL}/users/suap`, {
       method: "POST",
       headers: {
@@ -64,8 +68,12 @@ export async function GET(request: Request) {
       body: JSON.stringify({ username, email }),
       cache: "no-store",
     });
-    if (!userResponse.ok)
+    if (!userResponse.ok) {
+      console.error("[SUAP OAuth] backend synchronization rejected request", {
+        status: userResponse.status,
+      });
       return errorResponse("Unable to synchronize SUAP user", 502);
+    }
 
     const user = (await userResponse.json()) as {
       username?: unknown;
@@ -91,7 +99,11 @@ export async function GET(request: Request) {
       role,
     });
     return NextResponse.redirect(new URL("/auth/setup-password", request.url));
-  } catch {
+  } catch (error) {
+    console.error("[SUAP OAuth] callback failed", {
+      stage,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
     return errorResponse("Unable to complete SUAP authentication", 502);
   }
 }

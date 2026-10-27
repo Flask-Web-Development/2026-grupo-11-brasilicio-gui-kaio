@@ -77,7 +77,7 @@ Para o frontend, use `frontend` como Root Directory e configure:
 - `SESSION_SECRET`: segredo com pelo menos 32 caracteres;
 - `SUAP_SYNC_SECRET`: mesmo valor configurado no backend.
 
-Para o backend, use `backend` como Root Directory. Configure as variáveis do arquivo `.env.example`, incluindo `CORS_ORIGINS` com a URL pública do frontend. Não use SQLite em produção na Vercel: o filesystem das funções é efêmero. Use PostgreSQL, Neon, Supabase ou outro banco persistente em `DATABASE_URL`.
+Para o backend, use `backend` como Root Directory. Configure as variáveis do arquivo `.env.example`, incluindo `CORS_ORIGINS` com a URL pública do frontend. Para este teste, o backend pode omitir `DATABASE_URL` e usará SQLite em `/tmp`; os dados podem desaparecer entre execuções. Para produção, use PostgreSQL, Neon, Supabase ou outro banco persistente em `DATABASE_URL`.
 
 A URL configurada no SUAP deve ser exatamente a mesma de `OAUTH2_REDIRECT_URI`, incluindo protocolo, domínio, caminho e ausência ou presença de barra final.
 

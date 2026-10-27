@@ -45,7 +45,7 @@ A API ficará disponível em `http://127.0.0.1:5000`.
 
 Crie um projeto Vercel separado para o backend usando `backend` como Root Directory. O arquivo `vercel.json` e `api/index.py` expõem a aplicação Flask como uma função serverless.
 
-Configure `DATABASE_URL` com um banco PostgreSQL persistente. O SQLite local funciona para desenvolvimento, mas não deve ser usado na Vercel porque o filesystem das funções é efêmero e os dados podem desaparecer.
+Para um teste temporário, é possível omitir `DATABASE_URL`: na Vercel o backend usará SQLite em `/tmp/ifpar.db`. Esse arquivo não é persistente e pode ser apagado entre execuções. Para uso real, configure `DATABASE_URL` com um banco PostgreSQL persistente.
 
 Configure também `CORS_ORIGINS` com a URL pública do frontend e mantenha `SUAP_SYNC_SECRET` idêntico ao valor configurado no projeto frontend.
 

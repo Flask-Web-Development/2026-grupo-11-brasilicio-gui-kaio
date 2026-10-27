@@ -48,18 +48,19 @@ def create_app(test_config=None):
     ]
     CORS(application, origins=cors_origins)
 
-    database_url = os.getenv("DATABASE_URL", "sqlite:///db.sqlite")
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        database_url = (
+            "sqlite:////tmp/ifpar.db"
+            if os.getenv("VERCEL")
+            else "sqlite:///db.sqlite"
+        )
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
     elif database_url.startswith("postgresql://"):
         database_url = database_url.replace(
             "postgresql://", "postgresql+psycopg://", 1
         )
-
-    if os.getenv("VERCEL") and not os.getenv("DATABASE_URL"):
-        raise RuntimeError("DATABASE_URL must be configured on Vercel")
-    if os.getenv("VERCEL") and database_url.startswith("sqlite"):
-        raise RuntimeError("A persistent PostgreSQL DATABASE_URL is required on Vercel")
 
     secret_key = os.getenv("SECRET_KEY", "dev")
     jwt_secret_key = os.getenv("JWT_SECRET_KEY", "super-secret")
