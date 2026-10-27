@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, SecretStr, EmailStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, EmailStr
 
 from datetime import datetime
 import enum
@@ -15,6 +15,14 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: SecretStr
+
+class SuapUserSync(BaseModel):
+    username: str
+    email: EmailStr | None = None
+
+class SuapPasswordUpdate(BaseModel):
+    user_id: int
+    password: SecretStr = Field(min_length=8)
 
 class UserUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True)

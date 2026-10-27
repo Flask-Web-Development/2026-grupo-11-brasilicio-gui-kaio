@@ -8,7 +8,7 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { ImSpinner8 } from "react-icons/im";
 
-import { userLogin } from "@/lib/api/endpoints/users";
+import { loginTraditional } from "@/lib/api/endpoints/auth";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -56,12 +56,9 @@ export default function AdminLogin() {
               setCarregando(true);
 
               try {
-                const response = await userLogin({ username, password });
-                if (response) {
-                  router.push("/admin/dashboard");
-                }
-              } catch (error) {
-                console.log(error);
+                await loginTraditional({ username, password });
+                router.push("/");
+              } catch {
                 setErro(
                   "Não foi possível entrar. Verifique seu e-mail e senha.",
                 );
