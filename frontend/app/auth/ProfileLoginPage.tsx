@@ -8,7 +8,7 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { ImSpinner8 } from "react-icons/im";
 
-import { userLogin } from "@/lib/api/endpoints/users";
+import { loginTraditional } from "@/lib/api/endpoints/auth";
 
 export default function ProfileLoginPage() {
   const router = useRouter();
@@ -19,6 +19,25 @@ export default function ProfileLoginPage() {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErro(null);
+    setCarregando(true);
+
+    try {
+      await loginTraditional({ username, password });
+      router.push("/");
+    } catch {
+      setErro("Não foi possível entrar. Verifique seu e-mail e senha.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const handleSuapLogin = () => {
+    router.push("/auth/suap");
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 bg-black h-full">
       <div className="hidden bg-linear-115 from-[#0A2B20] via-[#0A2B20] to-[#061A13] lg:flex lg:flex-col lg:justify-center px-10">
@@ -28,7 +47,8 @@ export default function ProfileLoginPage() {
           </h1>
           <div className="h-1 w-70 bg-[#E0A53C]" />
           <p className="mt-4 text-base leading-relaxed text-[#cfe3da]">
-            Faça login no para ver seus posts <br /> e se manter conectado com o campus do IF-PAR.
+            Faça login no para ver seus posts <br /> e se manter conectado com o
+            campus do IF-PAR.
           </p>
         </div>
       </div>
@@ -38,31 +58,11 @@ export default function ProfileLoginPage() {
         <div className="w-full max-w-sm rounded-2xl bg-[#F5F1E6] p-8 shadow-2xl">
           <h2 className="text-2xl font-bold text-black">Login de Usuário</h2>
           <p className="mt-2 text-sm text-[#5b5347]">
-            Use as credenciais matrícula e senha, ou faça login diretamente via SUAP.
+            Use as credenciais matrícula e senha, ou faça login diretamente via
+            SUAP.
           </p>
 
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setErro(null);
-              setCarregando(true);
-
-              try {
-                const response = await userLogin({ username, password });
-                if (response) {
-                  router.push("/admin/dashboard");
-                }
-              } catch (error) {
-                console.log(error);
-                setErro(
-                  "Não foi possível entrar. Verifique seu e-mail e senha.",
-                );
-              } finally {
-                setCarregando(false);
-              }
-            }}
-            className="mt-4 flex flex-col gap-5"
-          >
+          <form onSubmit={handleLogin} className="mt-4 flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="username"
@@ -128,7 +128,6 @@ export default function ProfileLoginPage() {
                 font-semibold text-gray-100 flex items-center"
               >
                 <p>{erro}</p>
-                
               </div>
             )}
 
@@ -150,6 +149,7 @@ export default function ProfileLoginPage() {
             <button
               type="button"
               disabled={carregando}
+              onClick={handleSuapLogin}
               className="mt-1 rounded-lg border border-gray-500 bg-[#adadad] min-h-10 px-4 py-2.5 text-sm font-semibold
               text-black transition hover:bg-[#bdbdbd] disabled:cursor-not-allowed 
               disabled:opacity-70"
@@ -163,7 +163,6 @@ export default function ProfileLoginPage() {
                 "Entrar via SUAP"
               )}
             </button>
-
           </form>
         </div>
       </div>
