@@ -57,8 +57,7 @@ Para informações sobre a estrutura dos módulos existentes, consulte [ARCHITEC
 
 ### Login de usuários
 
-O usuário pode autenticar pelo OAuth do SUAP ou pelo formulário de matrícula/e-mail
-e senha. O formulário valida as credenciais na API pública do SUAP:
+O usuário pode autenticar pelo OAuth do SUAP ou pelo formulário de matrícula/e-mail e senha. O formulário valida as credenciais na API pública do SUAP:
 
 - matrícula + senha podem criar a conta no primeiro login;
 - e-mail só funciona depois que a matrícula já tiver criado a conta;
@@ -66,11 +65,25 @@ e senha. O formulário valida as credenciais na API pública do SUAP:
 - todos os usuários são criados como `User`;
 - a promoção para `Admin` continua sendo feita pelo administrador no backend.
 
+### Deploy
+
+O frontend e o backend devem ser configurados como projetos separados na Vercel.
+
+Para o frontend, use `frontend` como Root Directory e configure:
+
+- `NEXT_PUBLIC_API_URL`: URL pública do backend;
+- `OAUTH2_CLIENT_ID` e `OAUTH2_CLIENT_SECRET`: credenciais OAuth do SUAP;
+- `OAUTH2_REDIRECT_URI`: URL pública do frontend seguida de `/auth/callback`;
+- `SESSION_SECRET`: segredo com pelo menos 32 caracteres;
+- `SUAP_SYNC_SECRET`: mesmo valor configurado no backend.
+
+Para o backend, use `backend` como Root Directory. Configure as variáveis do arquivo `.env.example`, incluindo `CORS_ORIGINS` com a URL pública do frontend. Não use SQLite em produção na Vercel: o filesystem das funções é efêmero. Use PostgreSQL, Neon, Supabase ou outro banco persistente em `DATABASE_URL`.
+
+A URL configurada no SUAP deve ser exatamente a mesma de `OAUTH2_REDIRECT_URI`, incluindo protocolo, domínio, caminho e ausência ou presença de barra final.
+
 ## Autenticação via SUAP
 
-O fluxo SUAP usa Authorization Code em Route Handlers do Next.js com `passport`
-e `passport-oauth2`. As credenciais OAuth e a chave de sessão são lidas
-somente no servidor:
+O fluxo SUAP usa Authorization Code em Route Handlers do Next.js com `passport` e `passport-oauth2`. As credenciais OAuth e a chave de sessão são lidas somente no servidor:
 
 - `OAUTH2_CLIENT_ID`
 - `OAUTH2_CLIENT_SECRET`
@@ -80,11 +93,6 @@ somente no servidor:
 
 No desenvolvimento, `OAUTH2_REDIRECT_URI` deve ser `http://localhost:3000/auth/callback`. Em produção, configure a URL HTTPS real registrada no SUAP; não use a URL local. O callback consulta `https://suap.ifrn.edu.br/api/rh/eu/` após trocar o código em `https://suap.ifrn.edu.br/o/token/`. A autorização começa em `https://suap.ifrn.edu.br/o/authorize/`.
 
-A sessão é um cookie assinado e `HttpOnly`; tokens OAuth não são enviados ao
-navegador nem armazenados em `localStorage`. A autenticação SUAP, por si só,
-não concede acesso administrativo. Todo usuário SUAP é criado como `User`; a
-promoção para `Admin` deve ser feita pelo administrador existente no backend.
+A sessão é um cookie assinado e `HttpOnly`; tokens OAuth não são enviados ao navegador nem armazenados em `localStorage`. A autenticação SUAP, por si só, não concede acesso administrativo. Todo usuário SUAP é criado como `User`; a promoção para `Admin` deve ser feita pelo administrador existente no backend.
 
-As cópias locais dos arquivos alterados ficam em `.passport-copies/` e são
-ignoradas pelo Git. Elas servem como backup da migração e não devem ser
-publicadas, pois incluem cópias dos arquivos de ambiente.
+As cópias locais dos arquivos alterados ficam em `.passport-copies/` e são ignoradas pelo Git. Elas servem como backup da migração e não devem ser publicadas, pois incluem cópias dos arquivos de ambiente.

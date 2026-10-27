@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import Card from "@/components/Card";
@@ -104,9 +103,6 @@ export default function BlogView() {
 
   const didInit = useRef(false); 
   // delete this fucker later, just here to avoid THAT BITCH FROM STRICT MODE
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const POSTS_PER_PAGE = 9;
   const [posts, setPosts] = useState<typeof data_test>([]);

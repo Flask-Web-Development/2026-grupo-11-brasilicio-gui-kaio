@@ -41,6 +41,14 @@ flask run
 
 A API ficará disponível em `http://127.0.0.1:5000`.
 
+## Deploy na Vercel
+
+Crie um projeto Vercel separado para o backend usando `backend` como Root Directory. O arquivo `vercel.json` e `api/index.py` expõem a aplicação Flask como uma função serverless.
+
+Configure `DATABASE_URL` com um banco PostgreSQL persistente. O SQLite local funciona para desenvolvimento, mas não deve ser usado na Vercel porque o filesystem das funções é efêmero e os dados podem desaparecer.
+
+Configure também `CORS_ORIGINS` com a URL pública do frontend e mantenha `SUAP_SYNC_SECRET` idêntico ao valor configurado no projeto frontend.
+
 ## Organização da API
 
 - `POST /login`: autentica um usuário e retorna um token JWT.

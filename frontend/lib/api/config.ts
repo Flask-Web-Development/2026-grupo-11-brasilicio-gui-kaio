@@ -1,3 +1,7 @@
-// configs globais são aqui
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:5000";
+if (!configuredApiUrl) {
+  throw new Error("NEXT_PUBLIC_API_URL is not configured");
+}
+
+export const API_URL = configuredApiUrl.replace(/\/+$/, "");

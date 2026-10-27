@@ -2,7 +2,6 @@
 
 import Header from "../../components/Header";
 import BlogPage from "./BlogPage";
-import TabBar from "../../components/TabBar";
 
 export default function Page() {
   return (

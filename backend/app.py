@@ -41,12 +41,39 @@ def login():
 
 def create_app(test_config=None):
     application = Flask(__name__, instance_relative_config=True)
-    CORS(application, origins=["http://localhost:3000"])
+    cors_origins = [
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+        if origin.strip()
+    ]
+    CORS(application, origins=cors_origins)
+
+    database_url = os.getenv("DATABASE_URL", "sqlite:///db.sqlite")
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif database_url.startswith("postgresql://"):
+        database_url = database_url.replace(
+            "postgresql://", "postgresql+psycopg://", 1
+        )
+
+    if os.getenv("VERCEL") and not os.getenv("DATABASE_URL"):
+        raise RuntimeError("DATABASE_URL must be configured on Vercel")
+    if os.getenv("VERCEL") and database_url.startswith("sqlite"):
+        raise RuntimeError("A persistent PostgreSQL DATABASE_URL is required on Vercel")
+
+    secret_key = os.getenv("SECRET_KEY", "dev")
+    jwt_secret_key = os.getenv("JWT_SECRET_KEY", "super-secret")
+    if os.getenv("VERCEL") and (
+        len(secret_key) < 32 or len(jwt_secret_key) < 32
+    ):
+        raise RuntimeError(
+            "SECRET_KEY and JWT_SECRET_KEY must contain at least 32 characters"
+        )
 
     application.config.from_mapping(
-        SECRET_KEY=os.getenv("SECRET_KEY", "dev"),
-        JWT_SECRET_KEY=os.getenv("JWT_SECRET_KEY", "super-secret"),
-        SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", "sqlite:///db.sqlite"),
+        SECRET_KEY=secret_key,
+        JWT_SECRET_KEY=jwt_secret_key,
+        SQLALCHEMY_DATABASE_URI=database_url,
     )
     if test_config:
         application.config.from_mapping(test_config)

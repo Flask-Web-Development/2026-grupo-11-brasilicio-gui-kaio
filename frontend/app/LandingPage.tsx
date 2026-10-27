@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function LandingPage() {
   return (
     <section className="flex h-full items-center bg-black px-4 sm:px-6">
@@ -20,7 +22,7 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <a
+            <Link
               href="/blog"
               className="inline-flex items-center gap-2 rounded-full bg-[#D4A017] px-6 py-3 text-sm font-semibold text-[#0B3D2E] transition-transform hover:scale-[1.03]"
             >
@@ -35,7 +37,7 @@ export default function LandingPage() {
               >
                 <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </a>
+            </Link>
           </div>
         </div>
 

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createSession } from "@/lib/auth/session";
 
+import { API_URL } from "@/lib/api/config";
+
 type BackendUser = { username?: unknown; email?: unknown; role?: unknown };
 
 function tokenSubject(token: string) {
@@ -24,9 +26,9 @@ export async function POST(request: Request) {
   } | null;
   const accessToken =
     typeof body?.accessToken === "string" ? body.accessToken : null;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const subject = accessToken ? tokenSubject(accessToken) : null;
-  if (!accessToken || !subject || !apiUrl) {
+  if (!accessToken || !subject || !API_URL) {
     return NextResponse.json(
       { error: "Invalid authentication" },
       { status: 400 },
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   const response = await fetch(
-    `${apiUrl}/users/${encodeURIComponent(subject)}`,
+    `${API_URL}/users/${encodeURIComponent(subject)}`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: "no-store",
