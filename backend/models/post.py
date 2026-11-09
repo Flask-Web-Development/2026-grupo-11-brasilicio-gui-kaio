@@ -35,7 +35,7 @@ class Post(db.Model):
     subtitle: Mapped[str | None] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     is_fixed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.RASCUNHO ,nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.RASCUNHO, nullable=False)
 
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     published_by: Mapped[str | None] = mapped_column(ForeignKey("User.user_id"), nullable=True)
