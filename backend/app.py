@@ -88,16 +88,23 @@ def create_app(test_config=None):
     from .routes.post_route import route_post
     from .routes.tag_route import route_tag
     from .routes.user_route import route_user
+    from .routes.image_route import route_image
+    from .routes.ombudsman_route import route_ombudsman
 
     application.register_blueprint(route_user)
     application.register_blueprint(route_tag)
     application.register_blueprint(route_post)
+    application.register_blueprint(route_image)
+    application.register_blueprint(route_ombudsman)
 
     from .models.image import Image
     from .models.post import Post
     from .models.post_image import post_image
     from .models.post_tag import post_tags
     from .models.tag import Tag
+    from .models.user import User
+    from .models.ombudsman_question import OmbudsmanQuestion
+    from .models.ombudsman_message import OmbudsmanMessage
 
     with application.app_context():
         db.create_all()
@@ -105,27 +112,3 @@ def create_app(test_config=None):
     return application
 
 app = create_app()
-
-def test_user_instance():
-    test_app = create_app()
-
-    from .models.user import Role
-
-    with test_app.app_context():
-        user = User(
-            username="usuario_teste_2",
-            email="usuario.teste.2@example.com",
-            role=Role.USER,
-        )
-        user.set_password("senha-de-teste-2")
-
-        db.session.add(user)
-        db.session.flush()
-        db.session.commit()
-
-        loaded_user = db.session.get(User, user.id)
-
-        print(f"Usuário criado: {loaded_user.username}")
-        print(f"ID: {loaded_user.id}")
-        print(f"Role: {loaded_user.role.value}")
-        print(f"Senha válida: {loaded_user.check_password('senha-de-teste')}")
