@@ -1,41 +1,37 @@
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from datetime import datetime
-import enum
+from typing import Annotated
 
-class Role(enum.StrEnum):
-    USER = "User"
-    ADMIN = "Admin"
+from ..models.user import Role
+
+UserId = Annotated[str, Field(min_length=1, max_length=20, pattern=r"^[A-Za-z0-9]+$", description="Matrícula do usuário no SUAP.")]
 
 class UserBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    username: str
+    user_id: UserId
+    name: str | None = None
     email: EmailStr | None = None
+    photo: str | None = None
+    course: str | None = None
+    campus: str | None = None
 
 class UserCreate(UserBase):
-    password: SecretStr
+    '''Dados cadastrais obtidos após autenticação bem-sucedida no SUAP.'''
 
-class SuapUserSync(BaseModel):
-    username: str
-    email: EmailStr | None = None
-
-class SuapPasswordUpdate(BaseModel):
-    user_id: int
-    password: SecretStr = Field(min_length=8)
+class SuapUserSync(UserBase):
+    '''Dados usados para sincronizar o cadastro local com o SUAP.'''
 
 class UserUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    username: str | None = None
+    name: str | None = None
     email: EmailStr | None = None
-    password: SecretStr | None = None
-    role: Role | None = None
+    photo: str | None = None
+    course: str | None = None
+    campus: str | None = None
 
 class UserResponse(UserBase):
-    id: int
-
     role: Role
-
-    created_at: datetime
-    updated_at: datetime | None = None
+    joined_at: datetime
