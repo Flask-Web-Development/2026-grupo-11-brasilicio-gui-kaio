@@ -10,5 +10,8 @@ class ImageBase(BaseModel):
 class ImageCreate(ImageBase):
     ...
 
+class ImageUpdate(BaseModel):
+    path: str | None = Field(default=None, min_length=1)
+
 class ImageResponse(ImageBase):
     image_id: UUID
