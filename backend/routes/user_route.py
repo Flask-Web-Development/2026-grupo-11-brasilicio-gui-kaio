@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required, current_user
+from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from ..schemas.user import (
@@ -31,10 +31,10 @@ def get_users():
 
 @route_user.get("/<user_id>")
 @jwt_required()
-def get_user_by_id(id: str):
-    if not is_authorized(id):
+def get_user_by_id(user_id: str):
+    if not is_authorized(user_id):
         return "", 403
-    user = get_user(id)
+    user = get_user(user_id)
     if user is None:
         return jsonify({"error": "User not found"}), 404
     return jsonify(object_user_serialize(user)), 200
@@ -43,20 +43,23 @@ def get_user_by_id(id: str):
 @suap_sync_required
 def post_suap_user():
     try:
-        sync_data = SuapUserSync.model_validate(request.get_json(silent=True))
+        sync_body = request.get_json(silent=True)
+        if isinstance(sync_body, dict) and "user_id" not in sync_body:
+            sync_body["user_id"] = sync_body.pop("username", None)
+        sync_data = SuapUserSync.model_validate(sync_body)
     except ValidationError as error:
         return validation_error_response(error)
 
     try:
-        user = sync_suap_user(sync_data.username, sync_data.email)
+        user = sync_suap_user(sync_data)
     except ValueError as error:
         return jsonify({"error": str(error)}), 409
     return jsonify(object_user_serialize(user)), 200
 
 @route_user.put("/<user_id>")
 @jwt_required()
-def put_user(id: str):
-    if not is_authorized(id):
+def put_user(user_id: str):
+    if not is_authorized(user_id):
         return "", 403
     try:
         put_body = request.get_json(silent=True)
@@ -64,14 +67,9 @@ def put_user(id: str):
     except ValidationError as error:
         return validation_error_response(error)
 
-    user = get_user(id)
+    user = get_user(user_id)
     if user is None:
         return jsonify({"error": "User not found"}), 404
 
-    try:
-        user = update_user(user, put_data, current_user)
-    except PermissionError as error:
-        return jsonify({"error": str(error)}), 403
-    except ValueError as error:
-        return jsonify({"error": str(error)}), 409
+    user = update_user(user, put_data)
     return jsonify(object_user_serialize(user)), 200

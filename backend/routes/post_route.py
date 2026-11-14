@@ -12,7 +12,7 @@ from ..services.post_service import (
     update_post
 )
 
-from ..auth import is_authorized, admin_required
+from ..auth import admin_required
 
 route_post = Blueprint("posts", __name__, url_prefix="/posts")
 
@@ -41,7 +41,10 @@ def post_post():
     except ValidationError as error:
         return jsonify({"errors": error.errors()}), 400
 
-    post = create_post(post_data)
+    try:
+        post = create_post(post_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
     return jsonify(object_post_serialize(post)), 201
 
 @route_post.delete("/<uuid:post_id>")
@@ -66,5 +69,8 @@ def put_post(post_id: UUID):
     if post is None:
         return jsonify({"error": "Post not found"}), 404
 
-    post = update_post(post, post_data)
+    try:
+        post = update_post(post, post_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
     return jsonify(object_post_serialize(post)), 200

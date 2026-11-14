@@ -1,6 +1,7 @@
-from sqlalchemy import select
 from datetime import datetime
 from uuid import UUID
+
+from sqlalchemy import select
 
 from ..database import db
 from ..models.ombudsman_message import OmbudsmanMessage
@@ -27,8 +28,8 @@ def list_messages(question_id: UUID) -> list[OmbudsmanMessage]:
     return list(db.session.scalars(statement).all())
 
 
-def get_message(id: UUID) -> OmbudsmanMessage:
-    return db.session.get(OmbudsmanMessage, id)
+def get_message(message_id: UUID) -> OmbudsmanMessage | None:
+    return db.session.get(OmbudsmanMessage, message_id)
 
 
 def create_message(
@@ -63,13 +64,11 @@ def update_message(
     return message
 
 
-def get_question(id: UUID) -> OmbudsmanQuestion:
-    return db.session.get(OmbudsmanQuestion, id)
+def get_question(question_id: UUID) -> OmbudsmanQuestion | None:
+    return db.session.get(OmbudsmanQuestion, question_id)
 
 
-def create_question(
-    data: OmbudsmanQuestionCreate, user_id: str
-) -> OmbudsmanQuestion:
+def create_question(data: OmbudsmanQuestionCreate, user_id: str) -> OmbudsmanQuestion:
     question = OmbudsmanQuestion(**data.model_dump(), user_id=user_id)
 
     db.session.add(question)
