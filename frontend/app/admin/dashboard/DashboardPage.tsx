@@ -1,39 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { GrUser, GrUserAdmin } from "react-icons/gr";
 import { BiSearch, BiSolidEdit, BiSolidFilePlus, BiSolidTrash } from "react-icons/bi";
-
-type Post = {
-  id: number;
-  author: string;
-  date: string;
-  title: string;
-  subtitle: string;
-  body: string;
-};
-
-const today = new Date(Date.now()).toISOString().slice(0, 10);
-
-const data_test: Post[] = [
-  { id: 1, author: "Voices Of My Head", date: today, title: "Professor Gay Tem Relações com Padre Gay", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira" },
-  { id: 2, author: "Voices Of My Head", date: today, title: "Não Ao Cream Cracker!!!", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
-  { id: 3, author: "Voices Of My Head", date: today, title: "Campus Do Amor, Alunos Correm Pelados No São João", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
-  { id: 4, author: "Voices Of My Head", date: today, title: "Campus Do Amor, Alunos Correm Pelados No São João", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
-  { id: 5, author: "Voices Of My Head", date: today, title: "Campus Do Amor, Alunos Correm Pelados No São João", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
-  { id: 6, author: "Voices Of My Head", date: today, title: "Campus Do Amor, Alunos Correm Pelados No São João", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
-  { id: 7, author: "Voices Of My Head", date: today, title: "Campus Do Amor, Alunos Correm Pelados No São João", subtitle: "MY GREAT FUCKING SUBTITLEEEEEEEEEEEEE", body: "wira2" },
-];
-
-// "2026-10-08" -> "08/10/2026" (sem new Date, para não sofrer com fuso horário)
-const formatDate = (iso: string) => iso.split("-").reverse().join("/");
+import { getPosts, type Post } from "@/app/mockdata";
 
 const focusRing =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400";
 
+const formatDate = (date: Date) => date.toLocaleDateString("pt-BR");
+
 export default function DashboardPage() {
-  const [posts, setPosts] = useState<Post[]>(data_test);
+  const [posts, setPosts] = useState<Post[]>(() => getPosts());
   const [query, setQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
