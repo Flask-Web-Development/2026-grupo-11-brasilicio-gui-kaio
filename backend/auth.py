@@ -30,4 +30,4 @@ def suap_sync_required(func):
     return wrapper
 
 def is_authorized(id: int):
-    return current_user.id == id or current_user.role == Role.ADMIN
+    return current_user.user_id == id or current_user.role == Role.ADMIN
