@@ -1,4 +1,9 @@
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+)
 
 from uuid import UUID
 
@@ -14,9 +19,11 @@ class PostBase(BaseModel):
     is_fixed: bool = False
 
 class PostCreate(PostBase):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Status = Status.RASCUNHO
     tags: list[UUID] = Field(default_factory=list)
     images: list[PostImageCreate] = Field(default_factory=list)
-    status: Status = Status.RASCUNHO
 
 class PostUpdate(BaseModel):
     slug: str | None = Field(default=None, min_length=1)
@@ -24,6 +31,7 @@ class PostUpdate(BaseModel):
     subtitle: str | None = None
     content: str | None = Field(default=None, min_length=1)
     is_fixed: bool | None = None
+    status: Status | None = None
     tags: list[UUID] | None = None
     images: list[PostImageCreate] | None = None
 

@@ -58,7 +58,7 @@ def post_question():
             request.get_json(silent=True)
         )
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     question = create_question(question_data, current_user.user_id)
     return jsonify(object_question_serialize(question)), 201
@@ -83,7 +83,7 @@ def put_question(question_id: UUID):
             request.get_json(silent=True)
         )
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     question = get_question(question_id)
     if question is None or question.deleted_at is not None:
@@ -127,7 +127,7 @@ def post_question_message(question_id: UUID):
             request.get_json(silent=True)
         )
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     question = get_question(question_id)
     if question is None or question.deleted_at is not None:
@@ -162,7 +162,7 @@ def put_message(message_id: UUID):
             request.get_json(silent=True)
         )
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     message = get_message(message_id)
     if message is None or message.deleted_at is not None:

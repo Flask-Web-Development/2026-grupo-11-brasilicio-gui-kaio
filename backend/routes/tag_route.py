@@ -38,7 +38,7 @@ def post_tag():
         post_body = request.get_json()
         tag_data = TagCreate.model_validate(post_body)
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     tag = create_tag(tag_data)
     return jsonify(object_tag_serialize(tag)), 201
@@ -59,7 +59,7 @@ def put_tag(tag_id: UUID):
         put_body = request.get_json()
         tag_data = TagUpdate.model_validate(put_body)
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     tag = get_tag(tag_id)
     if tag is None:

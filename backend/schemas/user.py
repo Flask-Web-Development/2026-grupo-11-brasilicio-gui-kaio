@@ -31,6 +31,11 @@ class UserUpdate(BaseModel):
     course: str | None = None
     campus: str | None = None
 
+class UserRoleUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    role: Role
+
 class UserResponse(UserBase):
     role: Role
     joined_at: AwareDatetime

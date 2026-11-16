@@ -1,4 +1,4 @@
-from sqlalchemy import Enum, String, CheckConstraint
+from sqlalchemy import Enum, String, CheckConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
@@ -25,9 +25,9 @@ class User(db.Model):
     photo: Mapped[str | None] = mapped_column(String, nullable=True, comment="caminho ou url da foto obtida pela API do suap")
     course: Mapped[str | None] = mapped_column(String, nullable=True)
     campus: Mapped[str | None] = mapped_column(String, nullable=True)
-    role: Mapped[Role] = mapped_column(Enum(Role, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Role.STUDENT, nullable=False)
+    role: Mapped[Role] = mapped_column(Enum(Role, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Role.STUDENT, server_default=text("'STUDENT'"), nullable=False, comment='Enum: "STUDENT" or "ADMIN"')
 
-    joined_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, server_default=func.current_timestamp(), nullable=False)
 
     # FK com Post
     published_posts: Mapped[list["Post"]] = relationship(foreign_keys="Post.published_by", back_populates="publisher")

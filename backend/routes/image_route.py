@@ -40,7 +40,7 @@ def post_image():
     try:
         image_data = ImageCreate.model_validate(request.get_json(silent=True))
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     try:
         image = create_image(image_data)
@@ -55,7 +55,7 @@ def put_image(image_id: UUID):
     try:
         image_data = ImageUpdate.model_validate(request.get_json(silent=True))
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     image = get_image(image_id)
     if image is None:

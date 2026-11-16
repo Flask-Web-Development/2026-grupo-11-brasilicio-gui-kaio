@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import Enum, ForeignKey, String, Text, Uuid, CheckConstraint
+from sqlalchemy import Enum, ForeignKey, String, Text, Uuid, CheckConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import  db,UTCDateTime, utc_now
@@ -36,10 +36,10 @@ class OmbudsmanQuestion(db.Model):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.user_id"), nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    type: Mapped[Type] = mapped_column(Enum(Type, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), nullable=False)
-    status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.PENDENTE, nullable=False)
+    type: Mapped[Type] = mapped_column(Enum(Type, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), nullable=False, comment='Enum: "SUGESTAO", "RECLAMACAO", "DUVIDA", "DENUNCIA", "OUTRO"')
+    status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.PENDENTE, server_default=text("'PENDENTE'"), nullable=False, comment='Enum: "PENDENTE", "RESPONDIDO", "FECHADO"')
     
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, server_default=func.current_timestamp(), nullable=False)
     updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, onupdate=utc_now)
     deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 

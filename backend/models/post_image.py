@@ -28,7 +28,7 @@ class PostImage(db.Model):
     post_image_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4, nullable=False)
     post_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("Post.post_id", ondelete="CASCADE"), nullable=False)
     image_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("Image.image_id", ondelete="SET NULL"), nullable=True)
-    usage_type: Mapped[UsageType] = mapped_column(Enum(UsageType, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=UsageType.CONTENT, nullable=False)
+    usage_type: Mapped[UsageType] = mapped_column(Enum(UsageType, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=UsageType.CONTENT, server_default=text("'CONTENT'"), nullable=False, comment='Enum: "THUMBNAIL" or "CONTENT"')
     position: Mapped[int | None] = mapped_column(Integer, nullable=True)
     width: Mapped[int | None] = mapped_column(Integer, nullable=True)
     height: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Enum, Boolean, CheckConstraint, String, Text, Uuid
+from sqlalchemy import ForeignKey, Enum, Boolean, CheckConstraint, String, Text, Uuid, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
@@ -34,8 +34,8 @@ class Post(db.Model):
     title: Mapped[str] = mapped_column(String, nullable=False)
     subtitle: Mapped[str | None] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    is_fixed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.RASCUNHO, nullable=False)
+    is_fixed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.RASCUNHO, server_default=text("'RASCUNHO'"), nullable=False, comment='Enum: "RASCUNHO" or "PUBLICADO"')
 
     published_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     published_by: Mapped[str | None] = mapped_column(ForeignKey("User.user_id"), nullable=True)

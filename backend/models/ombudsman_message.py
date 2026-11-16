@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey, Text, Uuid
+from sqlalchemy import ForeignKey, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
@@ -21,7 +21,7 @@ class OmbudsmanMessage(db.Model):
     user_id: Mapped[str] = mapped_column(ForeignKey("User.user_id"), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, server_default=func.current_timestamp(), nullable=False)
     updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, onupdate=utc_now)
     deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 

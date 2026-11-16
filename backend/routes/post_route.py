@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import current_user
 from pydantic import ValidationError
 
 from uuid import UUID
@@ -39,10 +40,10 @@ def post_post():
         post_body = request.get_json()
         post_data = PostCreate.model_validate(post_body)
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     try:
-        post = create_post(post_data)
+        post = create_post(post_data, current_user.user_id)
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
     return jsonify(object_post_serialize(post)), 201
@@ -63,14 +64,14 @@ def put_post(post_id: UUID):
         put_body = request.get_json()
         post_data = PostUpdate.model_validate(put_body)
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
     post = get_post(post_id)
     if post is None:
         return jsonify({"error": "Post not found"}), 404
 
     try:
-        post = update_post(post, post_data)
+        post = update_post(post, post_data, current_user.user_id)
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
     return jsonify(object_post_serialize(post)), 200
