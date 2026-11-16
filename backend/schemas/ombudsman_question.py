@@ -1,6 +1,5 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
-from datetime import datetime
 from uuid import UUID
 
 from ..models.ombudsman_question import Status, Type
@@ -25,6 +24,6 @@ class OmbudsmanQuestionResponse(BaseModel):
     type: Type
     status: Status
 
-    created_at: datetime
-    updated_at: datetime | None = None
-    deleted_at: datetime | None = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime | None = None
+    deleted_at: AwareDatetime | None = None

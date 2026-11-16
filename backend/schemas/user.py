@@ -1,6 +1,5 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, EmailStr, Field
 
-from datetime import datetime
 from typing import Annotated
 
 from ..models.user import Role
@@ -34,4 +33,4 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     role: Role
-    joined_at: datetime
+    joined_at: AwareDatetime

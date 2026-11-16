@@ -1,15 +1,12 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
 
-from ..database import db
+from ..database import db, utc_now
 from ..models.ombudsman_message import OmbudsmanMessage
 from ..models.ombudsman_question import OmbudsmanQuestion, Status
 from ..schemas.ombudsman_message import OmbudsmanMessageCreate, OmbudsmanMessageUpdate
 from ..schemas.ombudsman_question import OmbudsmanQuestionCreate, OmbudsmanQuestionUpdate
-
-
 
 def list_questions(user_id: str | None = None) -> list[OmbudsmanQuestion]:
     statement = select(OmbudsmanQuestion).where(
@@ -19,7 +16,6 @@ def list_questions(user_id: str | None = None) -> list[OmbudsmanQuestion]:
         statement = statement.where(OmbudsmanQuestion.user_id == user_id)
     return list(db.session.scalars(statement).all())
 
-
 def list_messages(question_id: UUID) -> list[OmbudsmanMessage]:
     statement = select(OmbudsmanMessage).where(
         OmbudsmanMessage.ombudsman_question_id == question_id,
@@ -27,10 +23,8 @@ def list_messages(question_id: UUID) -> list[OmbudsmanMessage]:
     )
     return list(db.session.scalars(statement).all())
 
-
 def get_message(message_id: UUID) -> OmbudsmanMessage | None:
     return db.session.get(OmbudsmanMessage, message_id)
-
 
 def create_message(
     data: OmbudsmanMessageCreate, question_id: UUID, user_id: str
@@ -44,12 +38,10 @@ def create_message(
     db.session.commit()
     return message
 
-
 def remove_message(message: OmbudsmanMessage) -> None:
-    message.deleted_at = datetime.now()
+    message.deleted_at = utc_now()
     db.session.commit()
     return None
-
 
 def update_message(
     message: OmbudsmanMessage, data: OmbudsmanMessageUpdate
@@ -63,10 +55,8 @@ def update_message(
 
     return message
 
-
 def get_question(question_id: UUID) -> OmbudsmanQuestion | None:
     return db.session.get(OmbudsmanQuestion, question_id)
-
 
 def create_question(data: OmbudsmanQuestionCreate, user_id: str) -> OmbudsmanQuestion:
     question = OmbudsmanQuestion(**data.model_dump(), user_id=user_id)
@@ -76,13 +66,11 @@ def create_question(data: OmbudsmanQuestionCreate, user_id: str) -> OmbudsmanQue
 
     return question
 
-
 def remove_question(question: OmbudsmanQuestion) -> None:
     question.status = Status.FECHADO
-    question.deleted_at = datetime.now()
+    question.deleted_at = utc_now()
     db.session.commit()
     return None
-
 
 def update_question(question: OmbudsmanQuestion, data: OmbudsmanQuestionUpdate) -> OmbudsmanQuestion:
     values = data.model_dump(exclude_unset=True)

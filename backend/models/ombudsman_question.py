@@ -5,10 +5,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, Uuid, CheckConstraint
+from sqlalchemy import Enum, ForeignKey, String, Text, Uuid, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import db
+from ..database import  db,UTCDateTime, utc_now
 
 if TYPE_CHECKING:
     from .ombudsman_message import OmbudsmanMessage
@@ -39,9 +39,9 @@ class OmbudsmanQuestion(db.Model):
     type: Mapped[Type] = mapped_column(Enum(Type, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), nullable=False)
     status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.PENDENTE, nullable=False)
     
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now, nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, onupdate=datetime.now)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, onupdate=utc_now)
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 
     messages: Mapped[list["OmbudsmanMessage"]] = relationship(back_populates="question", cascade="save-update, merge")
 

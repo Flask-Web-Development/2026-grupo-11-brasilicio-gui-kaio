@@ -17,7 +17,7 @@ from ..auth import admin_required
 route_post = Blueprint("posts", __name__, url_prefix="/posts")
 
 def object_post_serialize(post):
-    return PostResponse.model_validate(post).model_dump()
+    return PostResponse.model_validate(post).model_dump(mode="json")
 
 @route_post.get("")
 @admin_required

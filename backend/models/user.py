@@ -1,10 +1,10 @@
-from sqlalchemy import DateTime, Enum, String, CheckConstraint
+from sqlalchemy import Enum, String, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
 import enum
 
-from ..database import db
+from ..database import db, UTCDateTime, utc_now
 from .ombudsman_message import OmbudsmanMessage
 from .ombudsman_question import OmbudsmanQuestion
 from .post import Post
@@ -27,7 +27,7 @@ class User(db.Model):
     campus: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[Role] = mapped_column(Enum(Role, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Role.STUDENT, nullable=False)
 
-    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now, nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
 
     # FK com Post
     published_posts: Mapped[list["Post"]] = relationship(foreign_keys="Post.published_by", back_populates="publisher")

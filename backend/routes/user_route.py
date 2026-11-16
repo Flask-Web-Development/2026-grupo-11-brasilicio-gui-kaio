@@ -19,7 +19,7 @@ from ..auth import is_authorized, admin_required, suap_sync_required
 route_user = Blueprint("users", __name__, url_prefix="/users")
 
 def object_user_serialize(user):
-    return UserResponse.model_validate(user).model_dump()
+    return UserResponse.model_validate(user).model_dump(mode="json")
 
 def validation_error_response(error: ValidationError):
     return jsonify({"errors": error.errors()}), 400

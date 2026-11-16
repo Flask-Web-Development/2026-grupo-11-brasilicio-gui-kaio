@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Enum, Boolean, CheckConstraint, DateTime, String, Text, Uuid
+from sqlalchemy import ForeignKey, Enum, Boolean, CheckConstraint, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
@@ -10,7 +10,7 @@ import enum
 
 from uuid import UUID, uuid4
 
-from ..database import db
+from ..database import db, UTCDateTime, utc_now
 from .post_image import post_image
 from .image import Image
 from .post_image import PostImage
@@ -37,13 +37,13 @@ class Post(db.Model):
     is_fixed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     status: Mapped[Status] = mapped_column(Enum(Status, values_callable=lambda obj: [item.value for item in obj], native_enum=False, create_constraint=True), default=Status.RASCUNHO, nullable=False)
 
-    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     published_by: Mapped[str | None] = mapped_column(ForeignKey("User.user_id"), nullable=True)
 
-    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, onupdate=datetime.now)
+    updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, onupdate=utc_now)
     updated_by: Mapped[str | None] = mapped_column(ForeignKey("User.user_id"), nullable=True)
 
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     deleted_by: Mapped[str | None] = mapped_column(ForeignKey("User.user_id"), nullable=True)
 
     tags: Mapped[list["Tag"]] = relationship(secondary="Mapping_Post_Tag", back_populates="posts")

@@ -1,6 +1,5 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
-from datetime import datetime
 from uuid import UUID
 
 class OmbudsmanMessageCreate(BaseModel):
@@ -17,6 +16,6 @@ class OmbudsmanMessageResponse(BaseModel):
     user_id: str
     content: str
 
-    created_at: datetime
-    updated_at: datetime | None = None
-    deleted_at: datetime | None = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime | None = None
+    deleted_at: AwareDatetime | None = None

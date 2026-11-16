@@ -1,6 +1,5 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
-from datetime import datetime
 from uuid import UUID
 
 from ..models.post import Status
@@ -36,11 +35,11 @@ class PostResponse(PostBase):
     tags: list[TagResponse] = Field(default_factory=list)
     post_images: list[PostImageResponse] = Field(default_factory=list)
 
-    published_at: datetime | None = None
+    published_at: AwareDatetime | None = None
     published_by: str | None = None
 
-    updated_at: datetime | None = None
+    updated_at: AwareDatetime | None = None
     updated_by: str | None = None
 
-    deleted_at: datetime | None = None
+    deleted_at: AwareDatetime | None = None
     deleted_by: str | None = None
