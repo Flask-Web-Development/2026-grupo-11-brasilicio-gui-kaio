@@ -19,12 +19,10 @@ def object_tag_serialize(tag):
     return TagResponse.model_validate(tag).model_dump()
 
 @route_tag.get("")
-@admin_required
 def get_tags():
     return jsonify([object_tag_serialize(tag) for tag in list_tags()]), 200
 
 @route_tag.get("/<uuid:tag_id>")
-@admin_required
 def get_tag_by_id(tag_id: UUID):
     tag = get_tag(tag_id)
     if tag is None:
@@ -40,7 +38,10 @@ def post_tag():
     except ValidationError as error:
         return jsonify({"errors": error.errors(include_context=False)}), 400
 
-    tag = create_tag(tag_data)
+    try:
+        tag = create_tag(tag_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 409
     return jsonify(object_tag_serialize(tag)), 201
 
 @route_tag.delete("/<uuid:tag_id>")
@@ -65,5 +66,8 @@ def put_tag(tag_id: UUID):
     if tag is None:
         return jsonify({"error": "Tag not found"}), 404
 
-    tag = update_tag(tag, tag_data)
+    try:
+        tag = update_tag(tag, tag_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 409
     return jsonify(object_tag_serialize(tag)), 200

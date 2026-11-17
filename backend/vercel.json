@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "api/index.py"
     }
+  ],
+  "crons": [
+    {
+      "path": "/maintenance/purge-expired-posts",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

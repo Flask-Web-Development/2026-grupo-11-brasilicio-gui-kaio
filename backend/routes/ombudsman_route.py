@@ -23,9 +23,10 @@ from ..services.ombudsman_service import (
     list_messages,
     list_questions,
     remove_message,
-    remove_question,
     update_message,
     update_question,
+    close_question,
+    hide_question
 )
 
 route_ombudsman = Blueprint("ombudsman", __name__, url_prefix="/ombudsman")
@@ -46,7 +47,10 @@ def object_message_serialize(message):
 @route_ombudsman.get("/questions")
 @jwt_required()
 def get_questions():
-    questions = list_questions(None if is_admin() else current_user.user_id)
+    admin = is_admin()
+    questions = list_questions(
+        None if admin else current_user.user_id, include_deleted=admin
+    )
     return jsonify([object_question_serialize(question) for question in questions]), 200
 
 @route_ombudsman.post("/question")
@@ -60,6 +64,8 @@ def post_question():
     except ValidationError as error:
         return jsonify({"errors": error.errors(include_context=False)}), 400
 
+    if current_user.user_id is None:
+        return jsonify({"error": "A SUAP user is required to create a question"}), 403
     question = create_question(question_data, current_user.user_id)
     return jsonify(object_question_serialize(question)), 201
 
@@ -68,7 +74,7 @@ def post_question():
 @jwt_required()
 def get_question_by_id(question_id: UUID):
     question = get_question(question_id)
-    if question is None or question.deleted_at is not None:
+    if question is None or (question.deleted_at is not None and not is_admin()):
         return jsonify({"error": "Question not found"}), 404
     if not can_access_question(question):
         return "", 403
@@ -86,11 +92,14 @@ def put_question(question_id: UUID):
         return jsonify({"errors": error.errors(include_context=False)}), 400
 
     question = get_question(question_id)
-    if question is None or question.deleted_at is not None:
+    if question is None or (question.deleted_at is not None and not is_admin()):
         return jsonify({"error": "Question not found"}), 404
     if not can_access_question(question):
         return "", 403
-    question = update_question(question, question_data)
+    try:
+        question = update_question(question, question_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
     return jsonify(object_question_serialize(question)), 200
 
 @route_ombudsman.delete("/question/<uuid:question_id>")
@@ -98,11 +107,14 @@ def put_question(question_id: UUID):
 @jwt_required()
 def delete_question(question_id: UUID):
     question = get_question(question_id)
-    if question is None or question.deleted_at is not None:
+    if question is None or (question.deleted_at is not None and not is_admin()):
         return jsonify({"error": "Question not found"}), 404
     if not can_access_question(question):
         return "", 403
-    remove_question(question)
+    if is_admin():
+        close_question(question)
+    else:
+        hide_question(question)
     return "", 204
 
 @route_ombudsman.get("/question/<uuid:question_id>/message")
@@ -110,12 +122,12 @@ def delete_question(question_id: UUID):
 @jwt_required()
 def get_question_messages(question_id: UUID):
     question = get_question(question_id)
-    if question is None or question.deleted_at is not None:
+    if question is None or (question.deleted_at is not None and not is_admin()):
         return jsonify({"error": "Question not found"}), 404
     if not can_access_question(question):
         return "", 403
     return jsonify(
-        [object_message_serialize(message) for message in list_messages(question_id)]
+        [object_message_serialize(message) for message in list_messages(question_id, include_deleted=is_admin())]
     ), 200
 
 @route_ombudsman.post("/question/<uuid:question_id>/message")
@@ -134,8 +146,10 @@ def post_question_message(question_id: UUID):
         return jsonify({"error": "Question not found"}), 404
     if not can_access_question(question):
         return "", 403
+    if current_user.user_id is None:
+        return jsonify({"error": "A SUAP user is required to send a message"}), 403
     message = create_message(
-        message_data, question.ombudsman_question_id, current_user.user_id
+        message_data, question.ombudsman_question_id, current_user.user_id, current_user.role
     )
     return jsonify(object_message_serialize(message)), 201
 
@@ -144,10 +158,10 @@ def post_question_message(question_id: UUID):
 @jwt_required()
 def get_message_by_id(message_id: UUID):
     message = get_message(message_id)
-    if message is None or message.deleted_at is not None:
+    if message is None or (message.deleted_at is not None and not is_admin()):
         return jsonify({"error": "Message not found"}), 404
     question = get_question(message.ombudsman_question_id)
-    if question is None or question.deleted_at is not None:
+    if question is None or (question.deleted_at is not None and not is_admin()):
         return jsonify({"error": "Message not found"}), 404
     if not can_access_question(question):
         return "", 403
@@ -170,9 +184,7 @@ def put_message(message_id: UUID):
     question = get_question(message.ombudsman_question_id)
     if question is None or question.deleted_at is not None:
         return jsonify({"error": "Message not found"}), 404
-    if not can_access_question(question) or (
-        not is_admin() and message.user_id != current_user.user_id
-    ):
+    if not can_access_question(question) or message.user_id != current_user.user_id:
         return "", 403
     message = update_message(message, message_data)
     return jsonify(object_message_serialize(message)), 200

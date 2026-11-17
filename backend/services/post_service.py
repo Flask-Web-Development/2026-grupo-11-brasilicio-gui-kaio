@@ -1,6 +1,7 @@
 from uuid import UUID
+from datetime import timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, func, or_
 from sqlalchemy.exc import IntegrityError
 
 from ..database import db, utc_now
@@ -11,21 +12,14 @@ from ..models.tag import Tag
 from ..schemas.post_image import PostImageCreate
 from ..schemas.post import PostCreate, PostUpdate
 
-
-def list_posts() -> list[Post]:
-    return list(db.session.scalars(select(Post)).all())
-
-
 def get_post(post_id: UUID) -> Post | None:
     return db.session.get(Post, post_id)
-
 
 def get_tags(tag_ids: list[UUID]) -> list[Tag]:
     tags = list(db.session.scalars(select(Tag).where(Tag.tag_id.in_(tag_ids))).all())
     if len(tags) != len(set(tag_ids)):
         raise ValueError("One or more tags were not found")
     return tags
-
 
 def get_post_images(image_data: list[PostImageCreate]) -> list[PostImage]:
     image_ids = {image.image_id for image in image_data}
@@ -36,8 +30,9 @@ def get_post_images(image_data: list[PostImageCreate]) -> list[PostImage]:
         raise ValueError("One or more images were not found")
     return [PostImage(**image.model_dump()) for image in image_data]
 
-
-def create_post(data: PostCreate, published_by: str) -> Post:
+def create_post(data: PostCreate, published_by: str | None) -> Post:
+    if data.status == Status.PUBLICADO and published_by is None:
+        raise ValueError("Publishing requires a persisted SUAP user")
     tags = get_tags(data.tags)
     post_images = get_post_images(data.images)
     post = Post(**data.model_dump(exclude={"tags", "images"}))
@@ -55,14 +50,150 @@ def create_post(data: PostCreate, published_by: str) -> Post:
         raise ValueError("Post violates a database constraint") from error
     return post
 
+def list_posts() -> list[Post]:
+    statement = (
+        select(Post)
+        .where(Post.deleted_at.is_(None))
+        .order_by(Post.published_at.desc().nulls_last(), Post.post_id)
+    )
+    return list(db.session.scalars(statement).all())
 
-def remove_post(post: Post) -> None:
-    db.session.delete(post)
+def list_deleted_posts() -> list[Post]:
+    purge_expired_posts()
+    statement = (
+        select(Post)
+        .where(Post.deleted_at.is_not(None))
+        .order_by(Post.published_at.desc())
+    )
+    return list(db.session.scalars(statement).all())
+
+def get_public_posts(
+    page: int,
+    per_page: int,
+    query: str | None = None,
+    tag_id: UUID | None = None,
+) -> tuple[list[Post], int]:
+    conditions = [
+        Post.status == Status.PUBLICADO,
+        Post.deleted_at.is_(None),
+    ]
+    if query:
+        pattern = f"%{query}%"
+        conditions.append(
+            or_(
+                Post.slug.ilike(pattern),
+                Post.title.ilike(pattern),
+                Post.subtitle.ilike(pattern),
+                Post.content.ilike(pattern),
+            )
+        )
+    if tag_id is not None:
+        conditions.append(Post.tags.any(Tag.tag_id == tag_id))
+
+    total = db.session.scalar(
+        select(func.count()).select_from(Post).where(*conditions)
+    ) or 0
+    statement = (
+        select(Post)
+        .where(*conditions)
+        .order_by(
+            Post.is_fixed.desc(),
+            Post.published_at.desc().nulls_last(),
+            Post.post_id,
+        )
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+    )
+    return list(db.session.scalars(statement).all()), total
+
+def get_public_post_by_slug(slug: str) -> Post | None:
+    statement = select(Post).where(
+        Post.slug == slug,
+        Post.status == Status.PUBLICADO,
+        Post.deleted_at.is_(None),
+    )
+    return db.session.scalar(statement)
+
+def get_post_dashboard() -> dict[str, object]:
+    active = Post.deleted_at.is_(None)
+    total = db.session.scalar(
+        select(func.count()).select_from(Post).where(active)
+    ) or 0
+    published = db.session.scalar(
+        select(func.count()).select_from(Post).where(
+            active, Post.status == Status.PUBLICADO
+        )
+    ) or 0
+    drafts = db.session.scalar(
+        select(func.count()).select_from(Post).where(
+            active, Post.status == Status.RASCUNHO
+        )
+    ) or 0
+    recent_posts = list(
+        db.session.scalars(
+            select(Post)
+            .where(active, Post.status == Status.PUBLICADO)
+            .order_by(Post.published_at.desc().nulls_last(), Post.post_id)
+            .limit(5)
+        ).all()
+    )
+    return {
+        "total": total,
+        "published": published,
+        "drafts": drafts,
+        "recent_posts": recent_posts,
+    }
+
+def purge_expired_posts() -> int:
+    cutoff = utc_now() - timedelta(days=60)
+    expired_posts = list(
+        db.session.scalars(
+            select(Post).where(Post.deleted_at <= cutoff)
+        ).all()
+    )
+    if not expired_posts:
+        return 0
+    for post in expired_posts:
+        db.session.delete(post)
     db.session.commit()
+    return len(expired_posts)
 
+def soft_delete_post(post: Post, deleted_by: str | None) -> None:
+    if post.deleted_at is not None:
+        # TODO: if post is already in the trash, we could delete it permanently instead of raising an error
+        raise ValueError("Post is already in the trash")
+    post.deleted_at = utc_now()
+    post.deleted_by = deleted_by
+    post.is_fixed = False
+    try:
+        db.session.commit()
+    except IntegrityError as error:
+        db.session.rollback()
+        raise ValueError("Post violates a database constraint") from error
 
-def update_post(post: Post, data: PostUpdate, updated_by: str) -> Post:
+def restore_post(post: Post, updated_by: str | None) -> Post:
+    if post.deleted_at is None:
+        raise ValueError("Post is not in the trash")
+    post.deleted_at = None
+    post.deleted_by = None
+    post.status = Status.RASCUNHO
+    post.is_fixed = False
+    post.updated_by = updated_by
+    try:
+        db.session.commit()
+    except IntegrityError as error:
+        db.session.rollback()
+        raise ValueError("Post violates a database constraint") from error
+    return post
+
+def update_post(post: Post, data: PostUpdate, updated_by: str | None) -> Post:
+    if post.deleted_at is not None:
+        raise ValueError("Restore the post before editing it")
     values = data.model_dump(exclude_unset=True)
+
+    for field in ("slug", "title", "content", "is_fixed", "status", "tags", "images"):
+        if field in values and values[field] is None:
+            raise ValueError(f"{field} cannot be null")
 
     next_status = values.get("status", post.status)
     next_is_fixed = values.get("is_fixed", post.is_fixed)
@@ -71,8 +202,6 @@ def update_post(post: Post, data: PostUpdate, updated_by: str) -> Post:
 
     for field in ("slug", "title", "content", "is_fixed"):
         if field in values:
-            if values[field] is None:
-                raise ValueError(f"{field} cannot be null")
             setattr(post, field, values[field])
 
     if "status" in values:
@@ -82,6 +211,8 @@ def update_post(post: Post, data: PostUpdate, updated_by: str) -> Post:
 
         if post.status == Status.PUBLICADO:
             if status_changed or post.published_at is None or post.published_by is None:
+                if updated_by is None:
+                    raise ValueError("Publishing requires a persisted SUAP user")
                 post.published_at = utc_now()
                 post.published_by = updated_by
         elif status_changed or post.published_at is not None or post.published_by is not None:
@@ -90,10 +221,10 @@ def update_post(post: Post, data: PostUpdate, updated_by: str) -> Post:
 
     if "subtitle" in values:
         post.subtitle = values["subtitle"]
-    if "tags" in values and values["tags"] is not None:
+    if "tags" in values:
         post.tags = get_tags(values["tags"])
-    if "images" in values and data.images is not None:
-        post.post_images = get_post_images(data.images)
+    if "images" in values:
+        post.post_images = get_post_images(data.images or [])
     if values:
         post.updated_by = updated_by
 

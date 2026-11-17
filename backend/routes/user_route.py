@@ -1,17 +1,19 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, current_user
 from pydantic import ValidationError
 
 from ..schemas.user import (
     SuapUserSync,
     UserResponse,
     UserUpdate,
+    UserRoleUpdate
 )
 from ..services.user_service import (
     get_user,
     list_users,
     sync_suap_user,
     update_user,
+    update_user_role
 )
 
 from ..auth import is_authorized, admin_required, suap_sync_required
@@ -22,7 +24,7 @@ def object_user_serialize(user):
     return UserResponse.model_validate(user).model_dump(mode="json")
 
 def validation_error_response(error: ValidationError):
-    return jsonify({"errors": error.errors()}), 400
+    return jsonify({"errors": error.errors(include_context=False)}), 400
 
 @route_user.get("")
 @admin_required
@@ -72,4 +74,21 @@ def put_user(user_id: str):
         return jsonify({"error": "User not found"}), 404
 
     user = update_user(user, put_data)
+    return jsonify(object_user_serialize(user)), 200
+
+@route_user.put("/<user_id>/role")
+@admin_required
+def put_user_role(user_id: str):
+    try:
+        role_data = UserRoleUpdate.model_validate(request.get_json(silent=True))
+    except ValidationError as error:
+        return validation_error_response(error)
+
+    user = get_user(user_id)
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+    try:
+        user = update_user_role(user, role_data, current_user.user_id)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 403
     return jsonify(object_user_serialize(user)), 200

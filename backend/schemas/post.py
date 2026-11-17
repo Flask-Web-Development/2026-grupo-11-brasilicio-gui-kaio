@@ -51,3 +51,30 @@ class PostResponse(PostBase):
 
     deleted_at: AwareDatetime | None = None
     deleted_by: str | None = None
+
+class PostPublicResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    post_id: UUID
+    slug: str
+    title: str
+    subtitle: str | None = None
+    content: str
+    is_fixed: bool
+    status: Status
+    tags: list[TagResponse] = Field(default_factory=list)
+    post_images: list[PostImageResponse] = Field(default_factory=list)
+    published_at: AwareDatetime | None = None
+
+class PostPageResponse(BaseModel):
+    items: list[PostPublicResponse]
+    page: int
+    per_page: int
+    total: int
+    has_next: bool
+
+class PostDashboardResponse(BaseModel):
+    total: int
+    published: int
+    drafts: int
+    recent_posts: list[PostResponse]

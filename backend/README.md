@@ -1,6 +1,6 @@
 # Portal de Apoio ao Estudante - Backend
 
-API REST responsável por autenticação, usuários, tags e posts. A aplicação usa Flask, Flask-SQLAlchemy, SQLAlchemy, Pydantic e JWT.
+API REST responsável por autenticação, usuários, posts, tags, imagens e Ouvidoria. A aplicação usa Flask, Flask-SQLAlchemy, SQLAlchemy, Pydantic e JWT.
 
 ## Executar localmente
 
@@ -47,14 +47,25 @@ Crie um projeto Vercel separado para o backend usando `backend` como Root Direct
 
 Para um teste temporário, é possível omitir `DATABASE_URL`: na Vercel o backend usará SQLite em `/tmp/ifpar.db`. Esse arquivo não é persistente e pode ser apagado entre execuções. Para uso real, configure `DATABASE_URL` com um banco PostgreSQL persistente.
 
-Configure também `CORS_ORIGINS` com a URL pública do frontend e mantenha `SUAP_SYNC_SECRET` idêntico ao valor configurado no projeto frontend.
+Configure também `CORS_ORIGINS` com a URL pública do frontend e mantenha `SUAP_SYNC_SECRET` idêntico ao valor configurado no projeto frontend. Configure `ADMIN_USERNAME` e `ADMIN_PASSWORD` para o login independente do Admin Master.
+Configure `CRON_SECRET` como um segredo aleatório na Vercel para autorizar o expurgo diário de posts removidos há mais de 60 dias.
 
 ## Organização da API
 
-- `POST /login`: autentica um usuário e retorna um token JWT.
+- `POST /login`: autentica matrícula e senha diretamente no SUAP e retorna um token JWT.
+- `POST /login/master`: autentica o Admin Master usando `ADMIN_USERNAME` e `ADMIN_PASSWORD`; não cria registro em `User`.
+- `POST /login/oauth`: troca a identidade já sincronizada no callback OAuth por um JWT; exige `X-SUAP-Sync-Secret` e `user_id`.
+- O Admin Master pode acessar as operações administrativas, mas não pode publicar posts nem enviar mensagens na Ouvidoria, pois essas ações exigem autoria vinculada a um usuário SUAP.
+- O OAuth do SUAP é concluído pelo callback do frontend; `POST /users/suap` sincroniza o perfil usando `SUAP_SYNC_SECRET`.
+- Os JWTs expiram em 8 horas. O frontend os mantém em uma sessão HttpOnly criptografada e encaminha as chamadas pelo proxy `/api/backend/*`; clientes externos devem enviar `Authorization: Bearer <token>`.
 - `/users`: operações de usuários.
-- `/tags`: operações de tags.
-- `/posts`: CRUD de posts protegido por autenticação administrativa.
+- `/tags`: leitura pública e gerenciamento administrativo de tags.
+- `/posts/public`: listagem paginada de posts publicados; aceita `q` e `tag_id`.
+- `/posts/public/<slug>`: leitura pública por slug.
+- `/posts`: gerenciamento administrativo de posts; inclui lixeira, restauração e dashboard.
+- `DELETE /images/<image_id>`: exige `?confirm=true`; sem confirmação retorna o número de publicações que usam a imagem.
+- `PUT /users/<user_id>/role`: alteração administrativa de papel (não permite alterar o próprio papel).
+- `GET /maintenance/purge-expired-posts`: rotina interna da Vercel, protegida por `CRON_SECRET`.
 
 Os endpoints e suas regras de autorização devem ser confirmados nas blueprints em `routes/`, que são a fonte de verdade enquanto não houver uma especificação OpenAPI.
 

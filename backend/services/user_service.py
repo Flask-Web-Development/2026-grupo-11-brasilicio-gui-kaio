@@ -1,12 +1,14 @@
 import json
 import os
+import re
+import secrets
 from urllib import error, request
 
 from sqlalchemy import select
 
 from ..database import db
 from ..models.user import User
-from ..schemas.user import SuapUserSync, UserCreate, UserUpdate
+from ..schemas.user import SuapUserSync, UserCreate, UserRoleUpdate, UserUpdate
 
 
 def list_users() -> list[User]:
@@ -15,6 +17,15 @@ def list_users() -> list[User]:
 
 def get_user(user_id: str) -> User | None:
     return db.session.get(User, user_id)
+
+def authenticate_admin_master(username: str, password: str) -> bool:
+    expected_username = os.getenv("ADMIN_USERNAME")
+    expected_password = os.getenv("ADMIN_PASSWORD")
+    if not expected_username or not expected_password:
+        raise RuntimeError("ADMIN_USERNAME and ADMIN_PASSWORD must be configured")
+    username_matches = secrets.compare_digest(username, expected_username)
+    password_matches = secrets.compare_digest(password, expected_password)
+    return username_matches and password_matches
 
 
 def create_user(data: UserCreate) -> User:
@@ -41,14 +52,12 @@ def sync_suap_user(data: SuapUserSync) -> User:
 
 def authenticate_suap_user(identifier: str, password: str) -> User:
     normalized_identifier = identifier.strip()
-    user = db.session.scalar(
-        select(User).where(User.email == normalized_identifier)
-    ) if "@" in normalized_identifier else None
-    suap_username = user.user_id if user else normalized_identifier
+    if re.fullmatch(r"[A-Za-z0-9]{1,20}", normalized_identifier) is None:
+        raise ValueError("SUAP login requires a valid matrícula")
 
     base_url = os.getenv("SUAP_PUBLIC_API_URL", "https://suap.ifrn.edu.br").rstrip("/")
     payload = json.dumps({
-        "username": suap_username,
+        "username": normalized_identifier,
         "password": password,
     }).encode()
     token_request = request.Request(
@@ -84,7 +93,7 @@ def authenticate_suap_user(identifier: str, password: str) -> User:
     user_id = next(
         (
             identity[field].strip()
-            for field in ("identificacao", "username", "matricula")
+            for field in ("identificacao", "matricula", "username")
             if isinstance(identity.get(field), str) and identity[field].strip()
         ),
         None,
@@ -104,14 +113,19 @@ def authenticate_suap_user(identifier: str, password: str) -> User:
     return sync_suap_user(SuapUserSync.model_validate(profile))
 
 
-def remove_user(user: User) -> None:
-    db.session.delete(user)
-    db.session.commit()
-
-
 def update_user(user: User, data: UserUpdate) -> User:
     values = data.model_dump(exclude_unset=True)
     for field, value in values.items():
         setattr(user, field, value)
+    db.session.commit()
+    return user
+
+
+def update_user_role(
+    user: User, data: UserRoleUpdate, actor_id: str | None
+) -> User:
+    if actor_id is not None and user.user_id == actor_id:
+        raise ValueError("Administrators cannot change their own role")
+    user.role = data.role
     db.session.commit()
     return user

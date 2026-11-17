@@ -9,21 +9,19 @@ from ..services.image_service import (
     list_images,
     remove_image,
     update_image,
+    get_image_post_count
 )
 from ..auth import admin_required
 
 route_image = Blueprint("images", __name__, url_prefix="/images")
 
-
 def object_image_serialize(image):
     return ImageResponse.model_validate(image).model_dump(mode="json")
-
 
 @route_image.get("")
 @admin_required
 def get_images():
     return jsonify([object_image_serialize(image) for image in list_images()]), 200
-
 
 @route_image.get("/<uuid:image_id>")
 @admin_required
@@ -32,7 +30,6 @@ def get_image_by_id(image_id: UUID):
     if image is None:
         return jsonify({"error": "Image not found"}), 404
     return jsonify(object_image_serialize(image)), 200
-
 
 @route_image.post("")
 @admin_required
@@ -47,7 +44,6 @@ def post_image():
     except ValueError as error:
         return jsonify({"error": str(error)}), 409
     return jsonify(object_image_serialize(image)), 201
-
 
 @route_image.put("/<uuid:image_id>")
 @admin_required
@@ -66,12 +62,18 @@ def put_image(image_id: UUID):
         return jsonify({"error": str(error)}), 409
     return jsonify(object_image_serialize(image)), 200
 
-
 @route_image.delete("/<uuid:image_id>")
 @admin_required
 def delete_image(image_id: UUID):
     image = get_image(image_id)
     if image is None:
         return jsonify({"error": "Image not found"}), 404
+    usage_count = get_image_post_count(image_id)
+    if request.args.get("confirm", "").lower() != "true":
+        return jsonify({
+            "error": "Confirmation required",
+            "confirmation_required": True,
+            "usage_count": usage_count,
+        }), 409
     remove_image(image)
     return "", 204

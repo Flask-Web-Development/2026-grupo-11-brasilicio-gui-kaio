@@ -1,17 +1,26 @@
 from functools import wraps
+from dataclasses import dataclass
 import os
 import secrets
 
 from flask import jsonify, request
-from flask_jwt_extended import current_user, jwt_required
+from flask_jwt_extended import get_current_user, jwt_required
 
 from .models.user import Role
+
+ADMIN_MASTER_SUBJECT = "admin-master"
+
+@dataclass(frozen=True)
+class AdminMasterPrincipal:
+    user_id: str | None = None
+    role: Role = Role.ADMIN
 
 def admin_required(func):
     @wraps(func)
     @jwt_required()
     def wrapper(*args, **kwargs):
-        if current_user.role != Role.ADMIN:
+        user = get_current_user()
+        if user is None or user.role != Role.ADMIN:
             return "", 403
         
         return func(*args, **kwargs)
@@ -29,5 +38,8 @@ def suap_sync_required(func):
 
     return wrapper
 
-def is_authorized(id: int):
-    return current_user.user_id == id or current_user.role == Role.ADMIN
+def is_authorized(user_id: str):
+    user = get_current_user()
+    return user is not None and (
+        user.user_id == user_id or user.role == Role.ADMIN
+    )
