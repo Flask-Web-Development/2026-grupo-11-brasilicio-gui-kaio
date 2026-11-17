@@ -33,6 +33,11 @@ copy .env.example .env   # PowerShell/CMD
 
 No Linux/macOS, use `cp .env.example .env`. Revise o `.env` antes de iniciar a aplicação; ele contém as chaves JWT e a URL do banco. O valor padrão usa SQLite local.
 
+Caso deseje simplesmente gerar valores aleatórios para os tokens, use o seguinte script:
+```bash
+python create_env.py
+```
+
 Inicie o servidor:
 
 ```bash
