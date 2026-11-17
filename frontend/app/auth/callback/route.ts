@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createSession } from "@/lib/auth/session";
 import { getSuapStrategy } from "@/lib/auth/passport";
 
-import { API_URL } from "@/lib/api/config";
+import { fetchBackend } from "@/lib/server/backend";
 
 const STATE_COOKIE = "suap_oauth_state";
 
@@ -41,31 +41,36 @@ export async function GET(request: Request) {
     const identity = await strategy.loadProfile(accessToken);
     const subject =
       stringValue(identity.identificacao) ??
-      stringValue(identity.username) ??
       stringValue(identity.matricula) ??
+      stringValue(identity.username) ??
       stringValue(identity.email);
     if (!subject)
       return errorResponse("SUAP returned an invalid identity", 502);
 
     const syncSecret = process.env.SUAP_SYNC_SECRET;
     const username =
-      stringValue(identity.username) ??
       stringValue(identity.identificacao) ??
       stringValue(identity.matricula) ??
+      stringValue(identity.username) ??
       subject;
     const email = stringValue(identity.email);
-    if (!API_URL || !syncSecret) {
+    const name = stringValue(identity.nome) ?? stringValue(identity.name);
+    const photo =
+      stringValue(identity.url_foto_75x100) ?? stringValue(identity.photo);
+    const course = stringValue(identity.curso) ?? stringValue(identity.course);
+    const campus = stringValue(identity.campus);
+    if (!syncSecret) {
       return errorResponse("User synchronization is not configured", 500);
     }
 
     stage = "backend-sync";
-    const userResponse = await fetch(`${API_URL}/users/suap`, {
+    const userResponse = await fetchBackend("users/suap", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-SUAP-Sync-Secret": syncSecret,
       },
-      body: JSON.stringify({ username, email }),
+      body: JSON.stringify({ username, email, name, photo, course, campus }),
       cache: "no-store",
     });
     if (!userResponse.ok) {
@@ -75,22 +80,45 @@ export async function GET(request: Request) {
       return errorResponse("Unable to synchronize SUAP user", 502);
     }
 
+    stage = "backend-login";
+    const loginResponse = await fetchBackend("login/oauth", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-SUAP-Sync-Secret": syncSecret,
+      },
+      body: JSON.stringify({ user_id: username }),
+      cache: "no-store",
+    });
+    const loginData = (await loginResponse.json().catch(() => null)) as {
+      access_token?: unknown;
+    } | null;
+    if (!loginResponse.ok || typeof loginData?.access_token !== "string") {
+      console.error("[SUAP OAuth] backend token exchange failed", {
+        status: loginResponse.status,
+      });
+      return errorResponse("Unable to authenticate SUAP user", 502);
+    }
+
     const user = (await userResponse.json()) as {
       username?: unknown;
+      user_id?: unknown;
       email?: unknown;
       role?: unknown;
       id?: unknown;
     };
-    const persistedUsername = stringValue(user.username) ?? username;
-    const role = user.role === "Admin" ? "Admin" : "User";
+    const persistedUsername =
+      stringValue(user.username) ?? stringValue(user.user_id) ?? username;
+    const role =
+      user.role === "Admin" || user.role === "ADMIN" ? "Admin" : "User";
 
     await createSession({
-      subject: String(user.id ?? subject),
+      subject: String(user.id ?? user.user_id ?? subject),
+      accessToken: loginData.access_token,
       username: persistedUsername,
       email: stringValue(user.email) ?? email,
-      name: stringValue(identity.nome) ?? stringValue(identity.name),
+      name,
       isAdmin: role === "Admin",
-      needsPasswordSetup: true,
     });
     console.info("[SUAP] authenticated user", {
       id: user.id,
@@ -98,7 +126,7 @@ export async function GET(request: Request) {
       email: stringValue(user.email) ?? email,
       role,
     });
-    return NextResponse.redirect(new URL("/auth/setup-password", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   } catch (error) {
     console.error("[SUAP OAuth] callback failed", {
       stage,

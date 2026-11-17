@@ -17,6 +17,8 @@ frontend/
 │   ├── api/                     # Comunicação com o backend
 │   │   └── endpoints/           # Operações organizadas por recurso da API
 │   └── hooks/                   # Hooks reutilizáveis
+│   ├── server/                  # Integrações executadas somente no servidor
+│   │   └── backend.ts           # Cliente HTTP do backend Flask
 ├── public/                      # Arquivos estáticos
 └── types/                       # Tipos compartilhados do frontend
 ```
@@ -41,6 +43,10 @@ Contém componentes reutilizáveis entre diferentes rotas. Atualmente, o princip
 
 É a fronteira de comunicação com a API Flask. O cliente HTTP, a configuração da URL base e os endpoints de posts, tags e usuários ficam organizados neste módulo.
 
+### `lib/server/`
+
+Contém integrações exclusivas do servidor Next.js. `backend.ts` resolve `BACKEND_API_URL` e centraliza os `fetch` para o backend Flask. Esse módulo não deve ser importado por componentes de navegador.
+
 ### `lib/hooks/`
 
 Agrupa hooks reutilizáveis para comportamentos como carregamento e controle do estado de requisições.
@@ -63,7 +69,13 @@ Componentes da página
       |
       +--> lib/hooks/             controla comportamentos reutilizáveis
       +--> lib/api/endpoints/     escolhe a operação da API
-      +--> lib/api/               envia a requisição
+      +--> lib/api/client/        envia a requisição pelo navegador
+      |
+      v
+Route Handler Next.js
+      |
+      v
+lib/server/backend.ts
       |
       v
 Backend Flask

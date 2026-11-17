@@ -1,43 +1,99 @@
 import type { Tag } from "./tag";
-import type { Image } from "./image";
 
 export enum PostStatus {
-  RASCUNHO = "Rascunho",
-  PUBLICADO = "Publicado",
-  OCULTO = "Oculto",
-  APAGADO = "Apagado",
+  RASCUNHO = "RASCUNHO",
+  PUBLICADO = "PUBLICADO",
 }
 
-// PostBase
-interface PostBase {
-  title: string;
-  subtitle: string;
-  content: string;
+export enum PostImageUsageType {
+  THUMBNAIL = "THUMBNAIL",
+  CONTENT = "CONTENT",
+}
+
+export type PostImageCreate = {
+  image_id: string;
+  usage_type?: PostImageUsageType;
+  position?: number | null;
+  width?: number | null;
+  height?: number | null;
+  alt?: string | null;
+};
+
+export type PostImage = {
+  post_image_id: string;
+  image_id: string | null;
+  usage_type: PostImageUsageType;
+  position: number | null;
+  width: number | null;
+  height: number | null;
+  alt: string | null;
+};
+
+export type PostCreate = {
   slug: string;
+  title: string;
+  subtitle?: string | null;
+  content: string;
+  is_fixed?: boolean;
+  status?: PostStatus;
+  tags?: string[];
+  images?: PostImageCreate[];
+};
+
+export type PostUpdate = {
+  slug?: string;
+  title?: string;
+  subtitle?: string | null;
+  content?: string;
+  is_fixed?: boolean;
+  status?: PostStatus;
+  tags?: string[];
+  images?: PostImageCreate[];
+};
+
+export type Post = {
+  post_id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  content: string;
   is_fixed: boolean;
   status: PostStatus;
-}
-
-// PostCreate
-export type PostCreate = PostBase & {
-  thumbnail: Image;
-  images: Image[];
-};
-
-// PostUpdate (tudo opcional)
-export type PostUpdate = Partial<PostBase> & {
-  thumbnail?: Image;
-  images?: Image[];
-};
-
-// PostResponse
-export type Post = PostBase & {
-  id: number;
-  created_by_id: number;
-  created_at: string;
-  updated_at: string | null;
-  updated_by: number | null;
   tags: Tag[];
-  thumbnail: Image;
-  images: Image[];
+  post_images: PostImage[];
+  published_at: string | null;
+  published_by: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+};
+
+export type PublicPost = Pick<
+  Post,
+  | "post_id"
+  | "slug"
+  | "title"
+  | "subtitle"
+  | "content"
+  | "is_fixed"
+  | "status"
+  | "tags"
+  | "post_images"
+  | "published_at"
+>;
+
+export type PostPage = {
+  items: PublicPost[];
+  page: number;
+  per_page: number;
+  total: number;
+  has_next: boolean;
+};
+
+export type PostDashboard = {
+  total: number;
+  published: number;
+  drafts: number;
+  recent_posts: Post[];
 };

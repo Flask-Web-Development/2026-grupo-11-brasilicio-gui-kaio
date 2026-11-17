@@ -1,30 +1,25 @@
 export enum UserRole {
-  USER = "User",
-  ADMIN = "Admin",
+  STUDENT = "STUDENT",
+  ADMIN = "ADMIN",
 }
 
-interface UserBase {
-  username: string;
+export type User = {
+  user_id: string;
+  name: string | null;
   email: string | null;
-}
-
-// UserCreate
-export type UserCreate = UserBase & {
-  password: string;
-};
-
-// UserUpdate (tudo opcional)
-export type UserUpdate = Partial<Omit<UserBase, "role">> & {
-  password?: string;
-  role?: UserRole; // ver observação #5
-};
-
-// UserResponse
-export type User = UserBase & {
-  id: number;
+  photo: string | null;
+  course: string | null;
+  campus: string | null;
   role: UserRole;
-  created_at: string;
-  updated_at: string | null;
+  joined_at: string;
+};
+
+export type UserUpdate = Partial<
+  Pick<User, "name" | "email" | "photo" | "course" | "campus">
+>;
+
+export type UserRoleUpdate = {
+  role: UserRole;
 };
 
 export type UserLogin = {

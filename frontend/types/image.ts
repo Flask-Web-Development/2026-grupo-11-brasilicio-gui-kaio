@@ -1,9 +1,11 @@
 export type ImageBase = {
-  path: string; // Path do Python vira string no JSON
+  path: string;
 };
 
 export type Image = ImageBase & {
-  id: number;
+  image_id: string;
 };
 
-// ImageCreate ainda não faz sentido no cliente — ver observação #4 abaixo
+export type ImageCreate = ImageBase;
+
+export type ImageUpdate = Partial<ImageBase>;

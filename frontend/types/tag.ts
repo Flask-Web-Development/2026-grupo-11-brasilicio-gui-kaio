@@ -1,6 +1,5 @@
 export type TagBase = {
   name: string;
-  importance: number;
 };
 
 // TagCreate
@@ -11,5 +10,5 @@ export type TagUpdate = Partial<TagBase>;
 
 // TagResponse
 export type Tag = TagBase & {
-  id: number;
+  tag_id: string;
 };

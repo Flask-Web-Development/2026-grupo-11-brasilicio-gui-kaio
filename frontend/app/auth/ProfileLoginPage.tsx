@@ -68,14 +68,14 @@ export default function ProfileLoginPage() {
                 htmlFor="username"
                 className="text-sm font-medium text-black"
               >
-                Usuário
+                Matrícula
               </label>
               <input
                 id="username"
                 type="text"
                 required
                 autoComplete="username"
-                placeholder="Digite seu usuário"
+                placeholder="Digite sua matrícula"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full rounded-lg border border-[#ddd3bd] bg-white px-3 py-2.5 text-sm text-black outline-none placeholder:text-[#a89f8d] focus:border-[#0F3D2E] focus:ring-2 focus:ring-[#0F3D2E]/20"

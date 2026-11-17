@@ -8,7 +8,7 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { ImSpinner8 } from "react-icons/im";
 
-import { loginTraditional } from "@/lib/api/endpoints/auth";
+import { loginAdminMaster } from "@/lib/api/endpoints/auth";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export default function AdminLogin() {
               setCarregando(true);
 
               try {
-                await loginTraditional({ username, password });
+                await loginAdminMaster({ username, password });
                 router.push("/");
               } catch {
                 setErro(

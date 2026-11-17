@@ -1,5 +1,3 @@
-import { API_URL } from "./config";
-
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -20,8 +18,7 @@ export async function apiFetch<T = unknown>(
   };
 
   const responseObject: object = { ...options, headers };
-
-  const response = await fetch(`${API_URL}${url}`, responseObject);
+  const response = await fetch(`/api/backend${url}`, responseObject);
 
   let data: unknown = null;
   try {

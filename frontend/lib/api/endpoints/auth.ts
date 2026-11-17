@@ -1,6 +1,5 @@
 import { internalFetch } from "../client";
-import type { LoginResponse, UserLogin } from "@/types/user";
-import { userLogin } from "./users";
+import type { UserLogin } from "@/types/user";
 
 type SessionResponse = {
   ok: true;
@@ -8,16 +7,16 @@ type SessionResponse = {
 
 export async function loginTraditional(
   payload: UserLogin,
-): Promise<LoginResponse> {
-  const response = await userLogin(payload);
-  if (!response.access_token) {
-    throw new Error("Token de autenticação não retornado");
-  }
-
+): Promise<void> {
   await internalFetch<SessionResponse>("/api/auth/traditional", {
     method: "POST",
-    body: JSON.stringify({ accessToken: response.access_token }),
+    body: JSON.stringify(payload),
   });
+}
 
-  return response;
+export async function loginAdminMaster(payload: UserLogin): Promise<void> {
+  await internalFetch<SessionResponse>("/api/auth/admin-master", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

@@ -71,7 +71,7 @@ O frontend e o backend devem ser configurados como projetos separados na Vercel.
 
 Para o frontend, use `frontend` como Root Directory e configure:
 
-- `NEXT_PUBLIC_API_URL`: URL pública do backend;
+- `BACKEND_API_URL`: URL privada do backend Flask;
 - `OAUTH2_CLIENT_ID` e `OAUTH2_CLIENT_SECRET`: credenciais OAuth do SUAP;
 - `OAUTH2_REDIRECT_URI`: URL pública do frontend seguida de `/auth/callback`;
 - `SESSION_SECRET`: segredo com pelo menos 32 caracteres;
