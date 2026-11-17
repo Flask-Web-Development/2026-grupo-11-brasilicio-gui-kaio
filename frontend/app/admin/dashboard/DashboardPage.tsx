@@ -15,20 +15,21 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>(() => getPosts());
   const [query, setQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [postIdToEdit, setPostIdToEdit] = useState("");
 
   const normalized = query.trim().toLowerCase();
   const filtered = normalized
     ? posts.filter(
         (p) =>
-          p.title.toLowerCase().includes(normalized) ||
-          p.author.toLowerCase().includes(normalized)
+          p.Title.toLowerCase().includes(normalized) ||
+          p.PublishedBy?.toLowerCase().includes(normalized)
       )
     : posts;
 
   const confirmDelete = () => {
     if (!postToDelete) return;
     // TODO: chamar a API de exclusão aqui antes de atualizar o estado
-    setPosts((prev) => prev.filter((p) => p.id !== postToDelete.id));
+    setPosts((prev) => prev.filter((p) => p.PostId !== postToDelete.PostId));
     setPostToDelete(null);
   };
 
@@ -119,25 +120,25 @@ export default function DashboardPage() {
             <ul className="mt-4 divide-y divide-emerald-800 overflow-hidden rounded-xl border border-emerald-800 bg-emerald-900/30">
               {filtered.map((post) => (
                 <li
-                  key={post.id}
+                  key={post.PostId}
                   className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                 >
                   <div className="min-w-0">
                     <Link
-                      href={`/blog/${post.id}`}
+                      href={`/blog/${post.PostId}`}
                       className={`line-clamp-2 font-semibold hover:text-amber-300 ${focusRing}`}
                     >
-                      {post.title}
+                      {post.Title}
                     </Link>
-                    <p className="truncate text-sm text-emerald-100/70">{post.subtitle}</p>
+                    <p className="truncate text-sm text-emerald-100/70">{post.Subtitle}</p>
                     <p className="mt-1 text-xs text-emerald-300/70">
-                      {post.author} · {formatDate(post.date)}
+                      {post.PublishedBy} · {post.PublishedAt?formatDate(post.PublishedAt): "Data não informada"}
                     </p>
                   </div>
 
                   <div className="flex shrink-0 gap-2">
                     <Link
-                      href={`/admin/dashboard/edit`}
+                      href={`/admin/dashboard/edit/${post.PostId}`}
                       className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-emerald-700 px-4 text-sm font-medium transition-colors hover:bg-emerald-800 sm:flex-none ${focusRing}`}
                     >
                       <BiSolidEdit size={18} />
@@ -173,7 +174,7 @@ export default function DashboardPage() {
               Excluir este post?
             </h3>
             <p id="delete-desc" className="mt-2 text-sm text-emerald-100/80">
-              “{postToDelete.title}” será removido do blog. Essa ação não pode ser desfeita.
+              “{postToDelete.Title}” será removido do blog. Essa ação não pode ser desfeita.
             </p>
 
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

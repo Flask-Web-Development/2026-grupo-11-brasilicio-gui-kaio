@@ -85,11 +85,18 @@ export default function BlogView() {
       <div className="mx-auto grid w-[90%] grid-cols-1 gap-x-10 gap-y-8 px-8 py-10 md:grid-cols-2">
         {posts.map((post) => (
           <Link
-            key={post.id}
-            href={`/blog/${post.id}`}
+            key={post.PostId}
+            href={`/blog/${post.PostId}`}
             className="block rounded-sm transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A017] focus-visible:outline-offset-2"
           >
-            <Card title={post.title} subtitle={post.subtitle} body={post.body} author={post.author} date={post.date.toLocaleDateString("pt-BR")}/>
+            <Card
+              Title={post.Title}
+              Subtitle={post.Subtitle ?? ""}
+              Content={post.Content}
+              Fixed={false}
+              PublishedBy={post.PublishedBy ?? ""}
+              PublishedAt={post.PublishedAt}
+            />
           </Link>
         ))}
       </div>
