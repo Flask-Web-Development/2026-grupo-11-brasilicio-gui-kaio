@@ -6,6 +6,6 @@ flask-sqlalchemy
 python-dotenv
 pydantic[email]
 psycopg[binary]
-fastapi
+fastapi[standard]
 uvicorn[standard]
 a2wsgi
