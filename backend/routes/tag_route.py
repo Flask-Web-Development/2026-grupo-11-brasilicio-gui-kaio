@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
+from uuid import UUID
 
 from ..schemas.tag import TagCreate, TagResponse, TagUpdate
 from ..services.tag_service import (
@@ -11,7 +11,7 @@ from ..services.tag_service import (
     update_tag
 )
 
-from ..auth import is_authorized, admin_required
+from ..auth import admin_required
 
 route_tag = Blueprint("tags", __name__, url_prefix="/tags")
 
@@ -19,14 +19,12 @@ def object_tag_serialize(tag):
     return TagResponse.model_validate(tag).model_dump()
 
 @route_tag.get("")
-@admin_required
 def get_tags():
     return jsonify([object_tag_serialize(tag) for tag in list_tags()]), 200
 
-@route_tag.get("/<int:id>")
-@admin_required
-def get_tag_by_id(id: int):
-    tag = get_tag(id)
+@route_tag.get("/<uuid:tag_id>")
+def get_tag_by_id(tag_id: UUID):
+    tag = get_tag(tag_id)
     if tag is None:
         return jsonify({"error": "Tag not found"}), 404
     return jsonify(object_tag_serialize(tag)), 200
@@ -38,32 +36,38 @@ def post_tag():
         post_body = request.get_json()
         tag_data = TagCreate.model_validate(post_body)
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
-    tag = create_tag(tag_data)
+    try:
+        tag = create_tag(tag_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 409
     return jsonify(object_tag_serialize(tag)), 201
 
-@route_tag.delete("/<int:id>")
+@route_tag.delete("/<uuid:tag_id>")
 @admin_required
-def delete_tag(id: int):
-    tag = get_tag(id)
+def delete_tag(tag_id: UUID):
+    tag = get_tag(tag_id)
     if tag is None:
         return jsonify({"error": "Tag not found"}), 404
     remove_tag(tag)
     return "", 204
 
-@route_tag.put("/<int:id>")
+@route_tag.put("/<uuid:tag_id>")
 @admin_required
-def put_tag(id: int):
+def put_tag(tag_id: UUID):
     try:
         put_body = request.get_json()
         tag_data = TagUpdate.model_validate(put_body)
     except ValidationError as error:
-        return jsonify({"errors": error.errors()}), 400
+        return jsonify({"errors": error.errors(include_context=False)}), 400
 
-    tag = get_tag(id)
+    tag = get_tag(tag_id)
     if tag is None:
         return jsonify({"error": "Tag not found"}), 404
 
-    tag = update_tag(tag, tag_data)
+    try:
+        tag = update_tag(tag, tag_data)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 409
     return jsonify(object_tag_serialize(tag)), 200

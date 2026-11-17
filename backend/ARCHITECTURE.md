@@ -64,3 +64,4 @@ Resposta JSON
 - A validação de payloads deve ficar em `schemas/`.
 - Consultas e alterações persistentes devem ficar no serviço correspondente.
 - Novas entidades devem ser representadas em `models/` e importadas durante a criação da aplicação.
+- Datas e horários devem ser persistidos e expostos em UTC (ISO 8601 com `Z` ou `+00:00`); conversões para o fuso local ficam a cargo do cliente.

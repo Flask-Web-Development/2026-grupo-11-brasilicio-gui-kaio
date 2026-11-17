@@ -1,10 +1,17 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+from uuid import UUID
 
 class ImageBase(BaseModel):
-    path: str
+    model_config = ConfigDict(from_attributes=True)
+
+    path: str = Field(min_length=1)
 
 class ImageCreate(ImageBase):
     ...
 
+class ImageUpdate(BaseModel):
+    path: str | None = Field(default=None, min_length=1)
+
 class ImageResponse(ImageBase):
-    id: int
+    image_id: UUID

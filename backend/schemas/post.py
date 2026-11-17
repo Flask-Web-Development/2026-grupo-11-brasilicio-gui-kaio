@@ -1,58 +1,80 @@
-from pydantic import BaseModel, ConfigDict, SecretStr, EmailStr
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+)
 
-from datetime import datetime
-import enum
+from uuid import UUID
 
+from ..models.post import Status
+from .post_image import PostImageCreate, PostImageResponse
 from .tag import TagResponse
-from .image import ImageResponse
-
-class Status(enum.StrEnum):
-    RASCUNHO = "Rascunho"
-    PUBLICADO = "Publicado"
-    OCULTO = "Oculto"
-    APAGADO = "Apagado"
 
 class PostBase(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    title: str
-    subtitle: str
-    content: str
-    slug: str
-
-    is_fixed: bool
-
-    status: Status
-    thumbnail: ImageResponse
-    images: list[ImageResponse] = []
+    slug: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    subtitle: str | None = None
+    content: str = Field(min_length=1)
+    is_fixed: bool = False
 
 class PostCreate(PostBase):
-    ...
+    model_config = ConfigDict(extra="forbid")
+
+    status: Status = Status.RASCUNHO
+    tags: list[UUID] = Field(default_factory=list)
+    images: list[PostImageCreate] = Field(default_factory=list)
 
 class PostUpdate(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    title: str | None = None
+    slug: str | None = Field(default=None, min_length=1)
+    title: str | None = Field(default=None, min_length=1)
     subtitle: str | None = None
-    content: str | None = None
-    slug: str | None = None
-
+    content: str | None = Field(default=None, min_length=1)
     is_fixed: bool | None = None
-
     status: Status | None = None
-    thumbnail: ImageResponse | None = None
-    images: list[ImageResponse] | None = None
+    tags: list[UUID] | None = None
+    images: list[PostImageCreate] | None = None
 
 class PostResponse(PostBase):
-    id: int
-    created_by_id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    is_fixed: bool
-
+    post_id: UUID
     status: Status
+    tags: list[TagResponse] = Field(default_factory=list)
+    post_images: list[PostImageResponse] = Field(default_factory=list)
 
-    created_at: datetime
-    updated_at: datetime | None = None
-    updated_by: int | None = None
+    published_at: AwareDatetime | None = None
+    published_by: str | None = None
 
-    tags: list[TagResponse]
+    updated_at: AwareDatetime | None = None
+    updated_by: str | None = None
+
+    deleted_at: AwareDatetime | None = None
+    deleted_by: str | None = None
+
+class PostPublicResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    post_id: UUID
+    slug: str
+    title: str
+    subtitle: str | None = None
+    content: str
+    is_fixed: bool
+    status: Status
+    tags: list[TagResponse] = Field(default_factory=list)
+    post_images: list[PostImageResponse] = Field(default_factory=list)
+    published_at: AwareDatetime | None = None
+
+class PostPageResponse(BaseModel):
+    items: list[PostPublicResponse]
+    page: int
+    per_page: int
+    total: int
+    has_next: bool
+
+class PostDashboardResponse(BaseModel):
+    total: int
+    published: int
+    drafts: int
+    recent_posts: list[PostResponse]

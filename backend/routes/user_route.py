@@ -3,20 +3,17 @@ from flask_jwt_extended import jwt_required, current_user
 from pydantic import ValidationError
 
 from ..schemas.user import (
-    SuapPasswordUpdate,
     SuapUserSync,
-    UserCreate,
     UserResponse,
     UserUpdate,
+    UserRoleUpdate
 )
 from ..services.user_service import (
-    create_user,
     get_user,
     list_users,
-    remove_user,
     sync_suap_user,
-    set_user_password,
     update_user,
+    update_user_role
 )
 
 from ..auth import is_authorized, admin_required, suap_sync_required
@@ -24,86 +21,47 @@ from ..auth import is_authorized, admin_required, suap_sync_required
 route_user = Blueprint("users", __name__, url_prefix="/users")
 
 def object_user_serialize(user):
-    return UserResponse.model_validate(user).model_dump()
+    return UserResponse.model_validate(user).model_dump(mode="json")
 
 def validation_error_response(error: ValidationError):
-    return jsonify({"errors": error.errors()}), 400
+    return jsonify({"errors": error.errors(include_context=False)}), 400
 
 @route_user.get("")
 @admin_required
 def get_users():
     return jsonify([object_user_serialize(user) for user in list_users()]), 200
 
-@route_user.get("/<int:id>")
+@route_user.get("/<user_id>")
 @jwt_required()
-def get_user_by_id(id: int):
-    if not is_authorized(id):
+def get_user_by_id(user_id: str):
+    if not is_authorized(user_id):
         return "", 403
-    user = get_user(id)
+    user = get_user(user_id)
     if user is None:
         return jsonify({"error": "User not found"}), 404
     return jsonify(object_user_serialize(user)), 200
-
-@route_user.post("")
-def post_user():
-    try:
-        post_body = request.get_json(silent=True)
-        user_data = UserCreate.model_validate(post_body)
-    except ValidationError as error:
-        return validation_error_response(error)
-
-    try:
-        user = create_user(user_data)
-    except ValueError as error:
-        return jsonify({"error": str(error)}), 409
-    return jsonify(object_user_serialize(user)), 201
 
 @route_user.post("/suap")
 @suap_sync_required
 def post_suap_user():
     try:
-        sync_data = SuapUserSync.model_validate(request.get_json(silent=True))
+        sync_body = request.get_json(silent=True)
+        if isinstance(sync_body, dict) and "user_id" not in sync_body:
+            sync_body["user_id"] = sync_body.pop("username", None)
+        sync_data = SuapUserSync.model_validate(sync_body)
     except ValidationError as error:
         return validation_error_response(error)
 
     try:
-        user = sync_suap_user(sync_data.username, sync_data.email)
+        user = sync_suap_user(sync_data)
     except ValueError as error:
         return jsonify({"error": str(error)}), 409
     return jsonify(object_user_serialize(user)), 200
 
-@route_user.post("/suap/password")
-@suap_sync_required
-def post_suap_password():
-    try:
-        password_data = SuapPasswordUpdate.model_validate(
-            request.get_json(silent=True)
-        )
-    except ValidationError as error:
-        return validation_error_response(error)
-
-    user = get_user(password_data.user_id)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    set_user_password(user, password_data.password.get_secret_value())
-    return jsonify(object_user_serialize(user)), 200
-
-@route_user.delete("/<int:id>")
+@route_user.put("/<user_id>")
 @jwt_required()
-def delete_user(id: int):
-    if not is_authorized(id):
-        return "", 403
-    user = get_user(id)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-    remove_user(user)
-    return "", 204
-
-@route_user.put("/<int:id>")
-@jwt_required()
-def put_user(id: int):
-    if not is_authorized(id):
+def put_user(user_id: str):
+    if not is_authorized(user_id):
         return "", 403
     try:
         put_body = request.get_json(silent=True)
@@ -111,14 +69,26 @@ def put_user(id: int):
     except ValidationError as error:
         return validation_error_response(error)
 
-    user = get_user(id)
+    user = get_user(user_id)
     if user is None:
         return jsonify({"error": "User not found"}), 404
 
+    user = update_user(user, put_data)
+    return jsonify(object_user_serialize(user)), 200
+
+@route_user.put("/<user_id>/role")
+@admin_required
+def put_user_role(user_id: str):
     try:
-        user = update_user(user, put_data, current_user)
-    except PermissionError as error:
-        return jsonify({"error": str(error)}), 403
+        role_data = UserRoleUpdate.model_validate(request.get_json(silent=True))
+    except ValidationError as error:
+        return validation_error_response(error)
+
+    user = get_user(user_id)
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+    try:
+        user = update_user_role(user, role_data, current_user.user_id)
     except ValueError as error:
-        return jsonify({"error": str(error)}), 409
+        return jsonify({"error": str(error)}), 403
     return jsonify(object_user_serialize(user)), 200

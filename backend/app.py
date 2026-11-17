@@ -4,28 +4,37 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token
 from pydantic import ValidationError
+import secrets
+from datetime import timedelta
 
+from .auth import ADMIN_MASTER_SUBJECT, AdminMasterPrincipal, suap_sync_required
 from .database import db
 from .models.user import User
-from .schemas.login import LoginRequest
-from .services.user_service import authenticate_suap_user
+from .schemas.login import LoginMaster, LoginSuap, SuapOAuthLogin
+from .services.user_service import authenticate_suap_user, authenticate_admin_master, get_user
+from .services.post_service import purge_expired_posts
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 jwt = JWTManager()
 
 @jwt.user_identity_loader
-def user_identity_lookup(user: User):
+def user_identity_lookup(user: User | AdminMasterPrincipal):
+    if isinstance(user, AdminMasterPrincipal):
+        return ADMIN_MASTER_SUBJECT
     return str(user.get_user_id())
 
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
-    return User.query.filter_by(id=identity).one_or_none()
+    if identity == ADMIN_MASTER_SUBJECT:
+        return AdminMasterPrincipal()
+    return User.query.filter_by(user_id=identity).one_or_none()
 
+# login with suap credentials
 def login():
     try:
-        login_request = LoginRequest.model_validate(request.get_json(silent=True))
+        login_request = LoginSuap.model_validate(request.get_json(silent=True))
         user = authenticate_suap_user(
             login_request.username,
             login_request.password.get_secret_value(),
@@ -38,6 +47,54 @@ def login():
         additional_claims={"role": str(user.role)},
     )
     return jsonify(access_token=access_token)
+
+@suap_sync_required
+def login_suap_oauth():
+    try:
+        login_request = SuapOAuthLogin.model_validate(request.get_json(silent=True))
+    except ValidationError as error:
+        return jsonify({"errors": error.errors(include_context=False)}), 400
+
+    user = get_user(login_request.user_id)
+    if user is None:
+        return jsonify({"error": "SUAP user has not been synchronized"}), 401
+    access_token = create_access_token(
+        identity=user,
+        additional_claims={"role": str(user.role)},
+    )
+    return jsonify(access_token=access_token)
+
+def login_admin_master():
+    try:
+        login_request = LoginMaster.model_validate(request.get_json(silent=True))
+    except ValidationError as error:
+        return jsonify({"errors": error.errors(include_context=False)}), 400
+
+    try:
+        authenticated = authenticate_admin_master(
+            login_request.username,
+            login_request.password.get_secret_value(),
+        )
+    except RuntimeError as error:
+        return jsonify({"error": str(error)}), 503
+    if not authenticated:
+        return jsonify({"error": "Wrong username or password"}), 401
+
+    access_token = create_access_token(
+        identity=AdminMasterPrincipal(),
+        additional_claims={"role": "ADMIN", "admin_master": True},
+    )
+    return jsonify(access_token=access_token)
+
+def purge_expired_posts_route():
+    expected = os.getenv("CRON_SECRET")
+    provided = request.headers.get("Authorization", "")
+    if not expected:
+        return jsonify({"error": "CRON_SECRET is not configured"}), 503
+    if not secrets.compare_digest(provided, f"Bearer {expected}"):
+        return jsonify({"error": "Unauthorized"}), 401
+    purged_count = purge_expired_posts()
+    return jsonify({"purged_posts": purged_count}), 200
 
 def create_app(test_config=None):
     application = Flask(__name__, instance_relative_config=True)
@@ -74,6 +131,7 @@ def create_app(test_config=None):
     application.config.from_mapping(
         SECRET_KEY=secret_key,
         JWT_SECRET_KEY=jwt_secret_key,
+        JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=8),
         SQLALCHEMY_DATABASE_URI=database_url,
     )
     if test_config:
@@ -83,21 +141,48 @@ def create_app(test_config=None):
 
     db.init_app(application)
     jwt.init_app(application)
-    application.add_url_rule("/login", view_func=login, methods=["POST"])
+
+    application.add_url_rule(
+        "/login",
+        view_func=login,
+        methods=["POST"]
+    )
+    application.add_url_rule(
+        "/login/master",
+        view_func=login_admin_master,
+        methods=["POST"]
+    )
+    application.add_url_rule(
+        "/login/oauth",
+        view_func=login_suap_oauth,
+        methods=["POST"]
+    )
+    application.add_url_rule(
+        "/maintenance/purge-expired-posts",
+        view_func=purge_expired_posts_route,
+        methods=["GET"]
+    )
 
     from .routes.post_route import route_post
     from .routes.tag_route import route_tag
     from .routes.user_route import route_user
+    from .routes.image_route import route_image
+    from .routes.ombudsman_route import route_ombudsman
 
     application.register_blueprint(route_user)
     application.register_blueprint(route_tag)
     application.register_blueprint(route_post)
+    application.register_blueprint(route_image)
+    application.register_blueprint(route_ombudsman)
 
     from .models.image import Image
     from .models.post import Post
     from .models.post_image import post_image
     from .models.post_tag import post_tags
     from .models.tag import Tag
+    from .models.user import User
+    from .models.ombudsman_question import OmbudsmanQuestion
+    from .models.ombudsman_message import OmbudsmanMessage
 
     with application.app_context():
         db.create_all()
@@ -105,27 +190,3 @@ def create_app(test_config=None):
     return application
 
 app = create_app()
-
-def test_user_instance():
-    test_app = create_app()
-
-    from .models.user import Role
-
-    with test_app.app_context():
-        user = User(
-            username="usuario_teste_2",
-            email="usuario.teste.2@example.com",
-            role=Role.USER,
-        )
-        user.set_password("senha-de-teste-2")
-
-        db.session.add(user)
-        db.session.flush()
-        db.session.commit()
-
-        loaded_user = db.session.get(User, user.id)
-
-        print(f"Usuário criado: {loaded_user.username}")
-        print(f"ID: {loaded_user.id}")
-        print(f"Role: {loaded_user.role.value}")
-        print(f"Senha válida: {loaded_user.check_password('senha-de-teste')}")
