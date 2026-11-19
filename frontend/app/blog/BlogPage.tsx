@@ -87,7 +87,7 @@ export default function BlogView() {
           <Link
             key={post.PostId}
             href={`/blog/${post.PostId}`}
-            className="block rounded-sm transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A017] focus-visible:outline-offset-2"
+            className="block rounded-sm transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-[#D4A017] focus-visible:outline-offset-2"
           >
             <Card
               Title={post.Title}

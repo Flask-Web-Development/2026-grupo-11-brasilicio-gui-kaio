@@ -1,8 +1,8 @@
 import Header from "@/components/Header";
 import PostPage from "./PostPage";
 
-export default async function Page({params,}: {params: Promise<{ postId: string }>}) {
-  const { postId } = await params;
+export default async function Page({params,}: {params: Promise<{ PostId: string }>}) {
+  const { PostId } = await params;
 
   return (
     <div className="grid grid-rows-[5rem_1fr] md:grid-rows-[4rem_1fr] min-h-screen">
@@ -11,7 +11,7 @@ export default async function Page({params,}: {params: Promise<{ postId: string 
       </div>
 
       <div>
-        <PostPage id={postId}/>
+        <PostPage id={PostId}/>
       </div>
     </div>
   );
