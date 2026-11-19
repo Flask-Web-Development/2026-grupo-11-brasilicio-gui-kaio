@@ -7,7 +7,7 @@ import Link from 'next/link';
 const NAV_LINKS = [
   { label: 'Início', href: '/' },
   { label: 'Posts', href: '/blog' },
-  { label: 'WIP', href: '#' },
+  { label: 'WIP', href: '/admin/dashboard' },
   { label: 'Sobre', href: '#' },
 ]
 
