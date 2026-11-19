@@ -11,7 +11,7 @@ export default async function Page({params,}: {params: Promise<{ PostId: string 
       </div>
 
       <div>
-        <EditPostPage id={PostId}/>
+        <EditPostPage PostId={PostId}/>
       </div>
     </div>
   );

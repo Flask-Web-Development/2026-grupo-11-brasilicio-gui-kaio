@@ -15,7 +15,6 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>(() => getPosts());
   const [query, setQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-  const [postIdToEdit, setPostIdToEdit] = useState("");
 
   const normalized = query.trim().toLowerCase();
   const filtered = normalized

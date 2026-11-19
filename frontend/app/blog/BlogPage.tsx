@@ -93,7 +93,7 @@ export default function BlogView() {
               Title={post.Title}
               Subtitle={post.Subtitle ?? ""}
               Content={post.Content}
-              Fixed={false}
+              Fixed={post.IsFixed}
               PublishedBy={post.PublishedBy ?? ""}
               PublishedAt={post.PublishedAt}
             />

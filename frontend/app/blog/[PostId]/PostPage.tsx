@@ -1,13 +1,16 @@
+"use client"
 
 import { notFound } from "next/navigation";
 
 import { getPosts, type Post } from "@/app/mockdata";
 
-export default async function PostPage({id} : {id:string} ) {
+//make async when db enters
+
+export default function PostPage({id} : {id:string} ) {
   const post = getPosts().find((p) => p.PostId === Number(id)); //substitute to fetch
 
   if (!post) {
-    notFound();
+    notFound()
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { FaUserCircle } from "react-icons/fa";
+import Link from 'next/link';
 
 const NAV_LINKS = [
   { label: 'Início', href: '/' },
@@ -38,13 +39,13 @@ export default function Header() {
 
         <nav className="hidden items-center justify-end gap-5 md:flex">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
               className="text-sm font-semibold text-emerald-100/80 transition-colors hover:text-[#D4A017]"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
           <button>
             <a href="/auth">
