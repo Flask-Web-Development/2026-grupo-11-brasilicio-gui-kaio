@@ -109,8 +109,6 @@ export async function GET(request: Request) {
     };
     const persistedUsername =
       stringValue(user.username) ?? stringValue(user.user_id) ?? username;
-    const role =
-      user.role === "Admin" || user.role === "ADMIN" ? "Admin" : "User";
 
     await createSession({
       subject: String(user.id ?? user.user_id ?? subject),
@@ -118,14 +116,14 @@ export async function GET(request: Request) {
       username: persistedUsername,
       email: stringValue(user.email) ?? email,
       name,
-      isAdmin: role === "Admin",
+      isAdmin: user.role === "ADMIN",
       isAdminMaster: false,
     });
     console.info("[SUAP] authenticated user", {
       id: user.id,
       username: persistedUsername,
       email: stringValue(user.email) ?? email,
-      role,
+      role: user.role,
     });
     return NextResponse.redirect(new URL("/", request.url));
   } catch (error) {

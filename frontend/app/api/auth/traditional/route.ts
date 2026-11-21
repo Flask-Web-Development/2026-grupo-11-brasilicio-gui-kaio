@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     accessToken,
     username: persistedUsername,
     email: typeof user.email === "string" ? user.email : undefined,
-    isAdmin: user.role === "Admin" || user.role === "ADMIN",
+    isAdmin: user.role === "ADMIN",
     isAdminMaster: false,
   });
   return NextResponse.json({ ok: true });
