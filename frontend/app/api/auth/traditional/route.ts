@@ -56,9 +56,7 @@ export async function POST(request: Request) {
     );
   }
   const accessToken =
-    typeof loginData?.access_token === "string"
-      ? loginData.access_token
-      : null;
+    typeof loginData?.access_token === "string" ? loginData.access_token : null;
   const subject = accessToken ? tokenSubject(accessToken) : null;
   if (!accessToken || !subject) {
     return NextResponse.json(
@@ -67,13 +65,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = await fetchBackend(
-    `users/${encodeURIComponent(subject)}`,
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      cache: "no-store",
-    },
-  );
+  const response = await fetchBackend(`users/${encodeURIComponent(subject)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: "no-store",
+  });
   if (!response.ok) {
     return NextResponse.json(
       { error: "Invalid authentication" },
@@ -101,6 +96,7 @@ export async function POST(request: Request) {
     username: persistedUsername,
     email: typeof user.email === "string" ? user.email : undefined,
     isAdmin: user.role === "Admin" || user.role === "ADMIN",
+    isAdminMaster: false,
   });
   return NextResponse.json({ ok: true });
 }

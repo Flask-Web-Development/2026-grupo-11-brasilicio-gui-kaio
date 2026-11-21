@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     accessToken: data.access_token,
     username,
     isAdmin: true,
+    isAdminMaster: true,
   });
   return NextResponse.json({ ok: true });
 }

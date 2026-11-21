@@ -18,9 +18,22 @@ export type AuthSession = {
   email?: string;
   name?: string;
   isAdmin: boolean;
+  isAdminMaster?: boolean;
   needsPasswordSetup?: boolean;
   expiresAt: number;
 };
+
+export function isAdminMasterSession(session: AuthSession | null) {
+  return session?.isAdmin === true && session.isAdminMaster === true;
+}
+
+export function isSuapAdminSession(session: AuthSession | null) {
+  return (
+    session?.isAdmin === true &&
+    session.isAdminMaster === false &&
+    session.subject !== "admin-master"
+  );
+}
 
 function getSessionSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -99,13 +112,20 @@ function parseSession(payload: string): AuthSession | null {
       typeof session.subject !== "string" ||
       typeof session.expiresAt !== "number" ||
       typeof session.isAdmin !== "boolean" ||
+      (session.isAdminMaster !== undefined &&
+        typeof session.isAdminMaster !== "boolean") ||
       (session.accessToken !== undefined &&
         typeof session.accessToken !== "string") ||
       session.expiresAt <= Date.now()
     ) {
       return null;
     }
-    return session;
+    return {
+      ...session,
+      isAdminMaster:
+        session.isAdminMaster === true ||
+        (session.subject === "admin-master" && session.isAdmin),
+    };
   } catch {
     return null;
   }

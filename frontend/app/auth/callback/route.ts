@@ -119,6 +119,7 @@ export async function GET(request: Request) {
       email: stringValue(user.email) ?? email,
       name,
       isAdmin: role === "Admin",
+      isAdminMaster: false,
     });
     console.info("[SUAP] authenticated user", {
       id: user.id,
