@@ -33,6 +33,16 @@ copy .env.example .env   # PowerShell/CMD
 
 No Linux/macOS, use `cp .env.example .env`. Revise o `.env` antes de iniciar a aplicação; ele contém as chaves JWT e a URL do banco. O valor padrão usa SQLite local.
 
+(Opcional) Coloque dados no banco de dados:
+```bash
+python -m backend.scripts.db_seed create
+```
+
+Se precisar remover esses dados:
+```bash
+python -m backend.scripts.db_seed remove
+```
+
 Inicie o servidor:
 
 ```bash
