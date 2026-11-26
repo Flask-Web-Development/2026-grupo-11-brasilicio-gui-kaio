@@ -45,12 +45,15 @@ class PostResponse(PostBase):
 
     published_at: AwareDatetime | None = None
     published_by: str | None = None
+    published_by_name: str | None = None
 
     updated_at: AwareDatetime | None = None
     updated_by: str | None = None
+    updated_by_name: str | None = None
 
     deleted_at: AwareDatetime | None = None
     deleted_by: str | None = None
+    deleted_by_name: str | None = None
 
 class PostPublicResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -65,6 +68,11 @@ class PostPublicResponse(BaseModel):
     tags: list[TagResponse] = Field(default_factory=list)
     post_images: list[PostImageResponse] = Field(default_factory=list)
     published_at: AwareDatetime | None = None
+    published_by_name: str | None = None
+    updated_at: AwareDatetime | None = None
+    updated_by_name: str | None = None
+    deleted_at: AwareDatetime | None = None
+    deleted_by_name: str | None = None
 
 class PostPageResponse(BaseModel):
     items: list[PostPublicResponse]

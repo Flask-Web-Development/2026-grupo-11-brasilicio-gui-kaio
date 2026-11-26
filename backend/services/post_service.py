@@ -15,6 +15,12 @@ from ..schemas.post import PostCreate, PostUpdate
 def get_post(post_id: UUID) -> Post | None:
     return db.session.get(Post, post_id)
 
+def slug_in_use(slug: str, exclude_id: UUID | None = None) -> bool:
+    statement = select(Post.post_id).where(Post.slug == slug)
+    if exclude_id is not None:
+        statement = statement.where(Post.post_id != exclude_id)
+    return db.session.scalar(statement) is not None
+
 def get_tags(tag_ids: list[UUID]) -> list[Tag]:
     tags = list(db.session.scalars(select(Tag).where(Tag.tag_id.in_(tag_ids))).all())
     if len(tags) != len(set(tag_ids)):
@@ -33,6 +39,8 @@ def get_post_images(image_data: list[PostImageCreate]) -> list[PostImage]:
 def create_post(data: PostCreate, published_by: str | None) -> Post:
     if data.status == Status.PUBLICADO and published_by is None:
         raise ValueError("Publishing requires a persisted SUAP user")
+    if slug_in_use(data.slug):
+        raise ValueError("Slug alread in use")
     tags = get_tags(data.tags)
     post_images = get_post_images(data.images)
     post = Post(**data.model_dump(exclude={"tags", "images"}))
@@ -194,6 +202,9 @@ def update_post(post: Post, data: PostUpdate, updated_by: str | None) -> Post:
     for field in ("slug", "title", "content", "is_fixed", "status", "tags", "images"):
         if field in values and values[field] is None:
             raise ValueError(f"{field} cannot be null")
+
+    if "slug" in values and slug_in_use(values["slug"], post.post_id):
+        raise ValueError("Slug alread in use")
 
     next_status = values.get("status", post.status)
     next_is_fixed = values.get("is_fixed", post.is_fixed)

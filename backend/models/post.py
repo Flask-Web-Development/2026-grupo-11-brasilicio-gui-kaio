@@ -57,3 +57,15 @@ class Post(db.Model):
 
     def get_post_id(self) -> UUID:
         return self.post_id
+
+    @property
+    def published_by_name(self) -> str | None:
+        return self.publisher.name if self.publisher else None
+
+    @property
+    def updated_by_name(self) -> str | None:
+        return self.updater.name if self.updater else None
+
+    @property
+    def deleted_by_name(self) -> str | None:
+        return self.deleter.name if self.deleter else None
