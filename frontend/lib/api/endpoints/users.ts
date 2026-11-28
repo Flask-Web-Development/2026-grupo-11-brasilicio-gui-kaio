@@ -7,7 +7,7 @@ export const getUser = (userId: string) =>
   apiFetch<User>(`/users/${encodeURIComponent(userId)}`);
 
 export const updateUser = (userId: string, payload: UserUpdate) =>
-  apiFetch<User>(`/users/${userId}`, {
+  apiFetch<User>(`/users/${encodeURIComponent(userId)}`, {
     method: "PUT",
     body: JSON.stringify(payload),
   });

@@ -8,17 +8,33 @@ export class ApiError extends Error {
   }
 }
 
-function getResponseErrorMessage(data: unknown): {
+// mensagem baseada no status HTTP.
+function messageForStatus(status: number): string {
+  if (status === 401) return "Sessão ausente ou expirada. Entre novamente.";
+  if (status === 403) return "Sem permissão para esta ação.";
+  if (status === 404) return "Não encontrado.";
+  if (status >= 500) return "Erro no servidor.";
+  return "Erro na requisição";
+}
+
+function getResponseErrorMessage(
+  data: unknown,
+  status: number,
+): {
   message: string;
   details?: unknown;
 } {
   if (typeof data !== "object" || data === null) {
-    return { message: "Erro na requisição" };
+    return { message: messageForStatus(status) };
   }
 
   if ("error" in data && typeof data.error === "string") {
     return { message: data.error };
   }
+
+  // Formato padrão do flask-jwt-extended (token inválido/expirado).
+  if ("msg" in data && typeof data.msg === "string")
+    return { message: `${messageForStatus(status)} (${data.msg})` };
 
   if ("errors" in data && Array.isArray(data.errors)) {
     const messages = data.errors
@@ -41,7 +57,7 @@ function getResponseErrorMessage(data: unknown): {
     };
   }
 
-  return { message: "Erro na requisição" };
+  return { message: messageForStatus(status) };
 }
 
 async function readJsonResponse(response: Response): Promise<unknown> {
@@ -72,7 +88,7 @@ export async function apiFetch<T = unknown>(
   const data = await readJsonResponse(response);
 
   if (!response.ok) {
-    const { message, details } = getResponseErrorMessage(data);
+    const { message, details } = getResponseErrorMessage(data, response.status);
     throw new ApiError(message, response.status, details);
   }
 
@@ -96,7 +112,7 @@ export async function internalFetch<T = unknown>(
   const response = await fetch(url, { ...options, headers });
   const data = await readJsonResponse(response);
   if (!response.ok) {
-    const { message, details } = getResponseErrorMessage(data);
+    const { message, details } = getResponseErrorMessage(data, response.status);
     throw new ApiError(message, response.status, details);
   }
   if (data === null) return undefined as T;

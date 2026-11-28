@@ -63,10 +63,13 @@ export type Post = {
   post_images: PostImage[];
   published_at: string | null;
   published_by: string | null;
+  published_by_name: string | null;
   updated_at: string | null;
   updated_by: string | null;
+  updated_by_name: string | null;
   deleted_at: string | null;
   deleted_by: string | null;
+  deleted_by_name: string | null;
 };
 
 export type PublicPost = Pick<
@@ -81,6 +84,11 @@ export type PublicPost = Pick<
   | "tags"
   | "post_images"
   | "published_at"
+  | "published_by_name"
+  | "updated_at"
+  | "updated_by_name"
+  | "deleted_at"
+  | "deleted_by_name"
 >;
 
 export type PostPage = {
